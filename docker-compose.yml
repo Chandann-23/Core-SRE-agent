@@ -1,0 +1,9 @@
+services:
+  target-sandbox:
+    build:
+      context: .
+      dockerfile: target_sandbox/Dockerfile
+    container_name: target-sandbox
+    ports:
+      - "8001:8001"
+    working_dir: /app

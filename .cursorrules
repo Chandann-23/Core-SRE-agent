@@ -1,0 +1,60 @@
+# Professional AI Agent Engineering Rules
+
+## Core Standards
+
+- Use Python type hints for all function parameters, return values, variables where clarity is improved, and public class attributes.
+- Use Pydantic models for all external input/output validation (API payloads, tool inputs, config schemas, and structured responses).
+- Prefer `async`/`await` for all I/O-bound operations, including FastAPI route handlers, HTTP calls, filesystem access, subprocess handling, and Docker interactions.
+- Define tools in a functional style: pure functions where practical, explicit inputs/outputs, no hidden mutable global state, and composable utility functions.
+- Do not swallow exceptions. `try-except: pass` is forbidden.
+- On exceptions, either:
+  - log with contextual metadata and re-raise, or
+  - raise a domain-specific error with meaningful context.
+- Use Google-style docstrings for every function and method.
+
+## FastAPI and Service Design
+
+- Use async FastAPI endpoints unless there is a clear synchronous-only constraint.
+- Validate request and response contracts with Pydantic models.
+- Keep endpoint handlers thin; move business logic into pure or minimally stateful service functions.
+- Return deterministic, typed structures suitable for downstream agents and tools.
+
+## Error Handling Policy
+
+- Every `except` block must do one of the following:
+  - `logger.exception(...)` then `raise`
+  - translate to a typed/domain error and raise
+  - handle a known recoverable case with an explicit fallback and logging
+- Include identifiers and key parameters in logs when safe (never log secrets).
+- Never ignore errors silently.
+
+## Docstring Policy (Google Format)
+
+- Every function and method must include:
+  - one-line summary
+  - `Args:` section
+  - `Returns:` section
+  - `Raises:` section when applicable
+
+Example:
+
+```python
+def process_items(items: list[int]) -> list[int]:
+    """Sort and normalize numeric items.
+
+    Args:
+        items: Input list of integers.
+
+    Returns:
+        Sorted list of integers.
+
+    Raises:
+        ValueError: If items is empty.
+    """
+```
+
+## Implementation Discipline
+
+- Prefer small, testable functions with explicit dependencies.
+- Avoid side effects inside utility functions unless the function is explicitly I/O-focused.
+- Keep concurrency explicit and structured; avoid fire-and-forget tasks unless lifecycle-managed.
