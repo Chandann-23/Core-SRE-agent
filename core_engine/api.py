@@ -1,7 +1,7 @@
 """FastAPI API surface for the autonomous SRE agent."""
+from __future__ import annotations
 import os
 import subprocess
-from __future__ import annotations
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
