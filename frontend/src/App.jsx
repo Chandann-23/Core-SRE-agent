@@ -6,7 +6,7 @@ import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Activity, Bug, ChevronDown, ChevronRight, FileCode, Folder, FolderOpen, PanelLeftClose, PanelLeftOpen, Plus, Terminal, Wrench } from "lucide-react";
 import logo from "./assets/logo.png";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "import.meta.env.VITE_API_URL";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const FALLBACK_CODE = `from fastapi import FastAPI
 from pydantic import BaseModel
 
