@@ -34,8 +34,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-toolbox = DockerToolbox()
-TARGET_FILE = "app/main.py"
+toolbox = None 
+if not IS_DEMO:
+    from src.tools.docker_executor import DockerToolbox
+    toolbox = DockerToolbox()
+    TARGET_FILE = "app/main.py"
 
 # --- MODELS --- (Keep these as they were)
 class InjectBugResponse(BaseModel):
@@ -129,7 +132,13 @@ async def repair() -> RepairResponse:
 
 @app.get("/get-code", response_model=StatusResponse)
 async def get_code() -> StatusResponse:
-    current_code = toolbox.read_file(TARGET_FILE)
+    if IS_DEMO:
+        # In Demo Mode, read from the local directory instead of Docker
+        with open(TARGET_FILE, "r") as f:
+            current_code = f.read()
+    else:
+        current_code = toolbox.read_file(TARGET_FILE)
+        
     return StatusResponse(target_file=TARGET_FILE, code_context=current_code)
 
 @app.get("/status", response_model=StatusResponse)
