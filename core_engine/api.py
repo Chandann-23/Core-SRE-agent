@@ -84,6 +84,10 @@ def write_sandbox_file(content):
 
 # --- ENDPOINTS ---
 
+@app.get("/")
+async def root():
+    return {"message": "CORE SRE API is live", "status": "Healthy"}
+
 @app.post("/inject-bug", response_model=InjectBugResponse)
 async def inject_bug() -> InjectBugResponse:
     buggy_code = (
