@@ -56,6 +56,7 @@ class RepairResponse(BaseModel):
 class StatusResponse(BaseModel):
     target_file: str
     code_context: str
+    status: str # "Healthy" or "Error"
 
 class SessionSummary(BaseModel):
     id: int
@@ -153,7 +154,18 @@ async def repair() -> RepairResponse:
 @app.get("/get-code", response_model=StatusResponse)
 async def get_code() -> StatusResponse:
     current_code = read_sandbox_file()
-    return StatusResponse(target_file=TARGET_FILE, code_context=current_code)
+    
+    # Simple check for health: if the bug string is in the code, it's "Error"
+    # In a real SRE scenario, this would run tests, but for polling speed we check the code.
+    status = "Healthy"
+    if "payload.values[0]" in current_code and "if payload.values" not in current_code:
+        status = "Error"
+        
+    return StatusResponse(
+        target_file=TARGET_FILE, 
+        code_context=current_code,
+        status=status
+    )
 
 @app.get("/status", response_model=StatusResponse)
 async def status() -> StatusResponse:
