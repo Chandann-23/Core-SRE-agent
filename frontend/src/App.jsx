@@ -81,6 +81,14 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (isRepairing) {
+      document.title = "🛠️ Repairing... | CORE SRE";
+    } else {
+      document.title = "CORE SRE | Autonomous Recovery";
+    }
+  }, [isRepairing]);
+
+  useEffect(() => {
     lastLogRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [history, isRepairing]);
 
