@@ -14,7 +14,8 @@ from src.tools.docker_executor import DockerToolbox
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Add the parent directory (core_engine) to the path so we can import src
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 load_dotenv()
 
 

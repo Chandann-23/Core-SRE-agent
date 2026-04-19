@@ -21,13 +21,14 @@ app = FastAPI(title="CORE SRE API")
 # If ENV is production, we use Demo Mode (no Docker)
 IS_DEMO = os.getenv('ENV') == 'production'
 
-# Update CORS to allow your future Vercel URL as well as local dev
+# Update CORS to allow dynamic frontend URLs
+frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173", 
+        "http://localhost:5173",
         "http://127.0.0.1:5173",
-        "https://your-vercel-project-name.vercel.app" # Add your Vercel URL here later
+        frontend_url
     ],
     allow_credentials=True,
     allow_methods=["*"],

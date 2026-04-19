@@ -1,11 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import ReactDiffViewer from "react-diff-viewer-continued";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Activity, Bug, ChevronDown, ChevronRight, FileCode, Folder, FolderOpen, PanelLeftClose, PanelLeftOpen, Plus, Terminal, Wrench } from "lucide-react";
+import logo from "./assets/logo.png";
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 const FALLBACK_CODE = `from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -150,7 +151,7 @@ function App() {
           }`}
         >
           <div className="-m-4 mb-4 flex flex-col items-center justify-center border-b border-slate-900/50 bg-[#000000] py-10">
-            <img src="/CORE%20SRE.png" alt="CORE SRE" className="h-12 w-auto" />
+            <img src={logo} alt="CORE SRE" className="h-12 w-auto" />
             <div className="mt-4 font-mono text-lg font-bold tracking-[0.2em] text-white">CORE SRE</div>
             <div className="mt-1 text-[9px] font-medium uppercase tracking-[0.3em] text-slate-500">
               Autonomous Recovery System
@@ -241,7 +242,7 @@ function App() {
             </div>
 
             <div className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-4">
-              <img src="/CORE%20SRE.png" alt="CORE SRE" className="h-9 w-auto opacity-95" />
+              <img src={logo} alt="CORE SRE" className="h-9 w-auto opacity-95" />
               <div className="flex flex-col items-center">
                 <div className="brand-title text-lg tracking-[0.35em] text-slate-100">CORE SRE</div>
                 <div className="mt-0.5 text-[9px] font-medium uppercase tracking-[0.3em] text-slate-500">

@@ -1,0 +1,32 @@
+services:
+  # Backend API
+  - type: web
+    name: core-sre-api
+    env: python
+    rootDir: core_engine
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ENV
+        value: production
+      - key: GROQ_API_KEY
+        sync: false # Set this in Render dashboard
+      - key: FRONTEND_URL
+        fromService:
+          name: core-sre-frontend
+          type: web
+          property: url
+
+  # Frontend UI
+  - type: web
+    name: core-sre-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishDir: dist
+    envVars:
+      - key: VITE_API_BASE
+        fromService:
+          name: core-sre-api
+          type: web
+          property: url
