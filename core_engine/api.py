@@ -1,46 +1,45 @@
 from __future__ import annotations
 import os
 import subprocess
-
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+# Load database helpers and graph logic
 from database import get_recent_sessions, save_session
 from src.agents.graph import sre_graph
 from src.agents.state import AgentState
-from src.tools.docker_executor import DockerToolbox
 
 load_dotenv()
 
 app = FastAPI(title="CORE SRE API")
 
-# --- DEPLOYMENT LOGIC ---
-# If ENV is production, we use Demo Mode (no Docker)
+# --- CONFIGURATION ---
 IS_DEMO = os.getenv('ENV') == 'production'
+TARGET_FILE = "app/main.py"
 
-# Update CORS to allow dynamic frontend URLs
+# --- TOOLBOX INITIALIZATION ---
+# We use a "Lazy" approach to avoid importing Docker on Render
+toolbox = None 
+if not IS_DEMO:
+    try:
+        from src.tools.docker_executor import DockerToolbox
+        toolbox = DockerToolbox()
+    except Exception:
+        print("Warning: Docker not found, defaulting to Demo behaviors.")
+
+# --- CORS SETUP ---
 frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        frontend_url
-    ],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", frontend_url, "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-toolbox = None 
-if not IS_DEMO:
-    from src.tools.docker_executor import DockerToolbox
-    toolbox = DockerToolbox()
-    TARGET_FILE = "app/main.py"
-
-# --- MODELS --- (Keep these as they were)
+# --- MODELS ---
 class InjectBugResponse(BaseModel):
     status: str
     target_file: str
@@ -67,6 +66,21 @@ class SessionSummary(BaseModel):
     final_code: str
     history_logs: list[str] = Field(default_factory=list)
 
+# --- HELPER FUNCTIONS FOR DEMO MODE ---
+def read_sandbox_file():
+    if not IS_DEMO and toolbox:
+        return toolbox.read_file(TARGET_FILE)
+    with open(TARGET_FILE, "r") as f:
+        return f.read()
+
+def write_sandbox_file(content):
+    if not IS_DEMO and toolbox:
+        toolbox.write_file(TARGET_FILE, content)
+    else:
+        os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
+        with open(TARGET_FILE, "w") as f:
+            f.write(content)
+
 # --- ENDPOINTS ---
 
 @app.post("/inject-bug", response_model=InjectBugResponse)
@@ -84,7 +98,7 @@ async def inject_bug() -> InjectBugResponse:
         "    total = sum(payload.values)\n"
         "    return {'first': first, 'total': total}\n"
     )
-    toolbox.write_file(TARGET_FILE, buggy_code)
+    write_sandbox_file(buggy_code)
     return InjectBugResponse(
         status="ok",
         target_file=TARGET_FILE,
@@ -93,14 +107,17 @@ async def inject_bug() -> InjectBugResponse:
 
 @app.post("/repair", response_model=RepairResponse)
 async def repair() -> RepairResponse:
-    initial_code = toolbox.read_file(TARGET_FILE)
+    initial_code = read_sandbox_file()
     
-    # In Demo Mode, we bypass real Docker tests if the environment isn't setup
-    try:
-        initial_test_result = await toolbox.run_tests()
-        logs = initial_test_result.stdout if initial_test_result.stdout else initial_test_result.stderr
-    except Exception as e:
-        logs = f"Execution Error: {str(e)}" if not IS_DEMO else "Demo Mode: Triggering synthetic error logs for repair simulation."
+    logs = ""
+    if IS_DEMO:
+        logs = "IndexError: list index out of range\n   at process_payload (app/main.py:10)"
+    else:
+        try:
+            test_result = await toolbox.run_tests()
+            logs = test_result.stdout if test_result.stdout else test_result.stderr
+        except Exception as e:
+            logs = f"Execution Error: {str(e)}"
 
     initial_state: AgentState = {
         "target_file": TARGET_FILE,
@@ -113,6 +130,9 @@ async def repair() -> RepairResponse:
     
     final_state = await sre_graph.ainvoke(initial_state)
     
+    # Save results back to file if AI fixed it
+    write_sandbox_file(final_state["code_context"])
+
     save_session(
         initial_code=initial_code,
         final_code=final_state["code_context"],
@@ -132,13 +152,7 @@ async def repair() -> RepairResponse:
 
 @app.get("/get-code", response_model=StatusResponse)
 async def get_code() -> StatusResponse:
-    if IS_DEMO:
-        # In Demo Mode, read from the local directory instead of Docker
-        with open(TARGET_FILE, "r") as f:
-            current_code = f.read()
-    else:
-        current_code = toolbox.read_file(TARGET_FILE)
-        
+    current_code = read_sandbox_file()
     return StatusResponse(target_file=TARGET_FILE, code_context=current_code)
 
 @app.get("/status", response_model=StatusResponse)
