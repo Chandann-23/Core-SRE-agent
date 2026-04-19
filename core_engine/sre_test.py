@@ -5,7 +5,8 @@ import threading
 import os
 
 # Configuration
-API_BASE = os.getenv('API_URL') or "https://core-sre-engine.onrender.com"
+# Change this line in sre_test.py
+API_BASE = os.getenv('API_URL') or "https://core-sre-backend-agent.onrender.com"
 print(f"🔗 Testing against: {API_BASE}")
 POLL_INTERVAL = 2  # seconds
 
