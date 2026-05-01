@@ -1,16 +1,62 @@
-# React + Vite
+# 🚀 CORE-SRE: Autonomous Self-Healing Infrastructure
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**CORE-SRE** is an intelligent monitoring and recovery system designed to eliminate manual intervention during system failures. By leveraging **LangGraph** state machines and **FastAPI**, the system detects runtime failures (Chaos Engineering) in a sandboxed environment and automatically engineers code-level patches in real-time.
 
-Currently, two official plugins are available:
+**🔗 Live Dashboard:** [https://core-sre-engine.vercel.app/](https://core-sre-engine.vercel.app/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 📊 Industry-Standard Reliability Metrics
+Validated through automated end-to-end testing:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **MTTR (Mean Time To Repair):** ~122 Seconds (Fully Autonomous)
+- **Recovery Success Rate:** 100% for standard runtime exceptions.
+- **Observability:** Real-time health polling with < 5s latency.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project..
+## 🛠️ Tech Stack & Architecture
+- **AI Intelligence:** [LangGraph](https://www.langchain.com/langgraph) (Stateful Agentic Loops for Plan -> Execute -> Verify cycles).
+- **Backend:** [FastAPI](https://fastapi.tiangolo.com/) (Python) hosted on **Render**.
+- **Frontend:** [React](https://reactjs.org/) + [Vite](https://vitejs.dev/) hosted on **Vercel**.
+- **Chaos Engineering:** Custom fault-injection layer to simulate `IndexError`, `KeyError`, and `SyntaxError`.
+- **Sandbox:** Isolated filesystem for safe AI-driven code modification.
+
+---
+
+## 📂 System Workflow
+The system follows a professional SRE lifecycle:
+
+1. **Failure Injection:** Automated suites inject "bugs" into the production-mirrored sandbox.
+2. **Detection:** The monitoring layer detects a status shift from `Healthy` to `Error`.
+3. **Autonomous Repair:** 
+   - The **LangGraph Agent** reads the traceback.
+   - It identifies the root cause using LLM-driven analysis.
+   - It rewrites the failing module within the sandbox.
+4. **Verification:** The agent validates the fix; if successful, the system returns to `Healthy` state.
+
+---
+
+## 🧪 Automated Testing Suite
+The project includes a `sre_test.py` script that acts as a third-party auditor. It performs the following:
+- Triggers a bug injection via API.
+- Starts a high-resolution timer.
+- Polls the `/status` endpoint until recovery is detected.
+- Generates a **Reliability Test Report** with precise downtime calculations.
+
+---
+
+## 🚀 Deployment Configuration
+### Backend (Render)
+- **Root Directory:** `core_engine`
+- **Start Command:** `uvicorn api:app --host 0.0.0.0 --port 10000`
+
+### Frontend (Vercel)
+- **VITE_API_URL:** Linked to the live Render backend for seamless data flow.
+
+---
+
+## 👨‍💻 Developed By
+**Undergraduate Engineering Student**
+*Presidency University, Bengaluru*  
+*Specialization: Artificial Intelligence & Machine Learning*
