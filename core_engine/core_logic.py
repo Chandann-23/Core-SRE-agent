@@ -26,7 +26,7 @@ if not api_key:
     print("❌ GROQ_API_KEY not found in environment variables")
     sys.exit(1)
 
-# Hard-code llama-3.1-8b-instant as primary model
+# Primary Model Lock - Hard-code llama-3.1-8b-instant
 try:
     llm = ChatGroq(
         model="llama-3.1-8b-instant",
@@ -34,9 +34,9 @@ try:
     )
     # Test connection with a simple message
     test_response = llm.invoke("Test connection")
-    print("✅ LLM initialized and connection verified with llama-3.1-8b-instant (PRIMARY)")
+    print("✅ LLM initialized with llama-3.1-8b-instant (PRIMARY MODEL LOCK)")
 except Exception as e:
-    print(f"❌ Failed to initialize LLM with llama-3.1-8b-instant: {e}")
+    print(f"❌ Model initialization failed: {e}")
     sys.exit(1)
 
 # Import core components

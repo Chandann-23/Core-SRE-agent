@@ -206,13 +206,9 @@ def helper_function():
 create_default_files()
 
 # --- CORS ---
-allowed_origins = [
-    "https://core-sre-engine.vercel.app"
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=["https://core-sre-engine.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
