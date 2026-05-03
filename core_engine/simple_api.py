@@ -291,61 +291,76 @@ async def repair_bug():
     Autonomous repair with explicit 60s MTTR simulation.
     This demonstrates enterprise-grade autonomous recovery.
     """
-    start_time = time.time()
-    target_file = os.path.join(SANDBOX_ROOT, "main.py")
-    
-    # Read original code for diff comparison
-    original_code = ""
     try:
-        with open(target_file, 'r') as f:
-            original_code = f.read()
+        start_time = time.time()
+        target_file = os.path.join(SANDBOX_ROOT, "main.py")
+        
+        # Read original code for diff comparison
+        original_code = ""
+        try:
+            with open(target_file, 'r') as f:
+                original_code = f.read()
+        except Exception as e:
+            add_audit_log(f"Warning: Could not read original file: {e}")
+            original_code = "# Original code not available"
+        
+        # Clear previous audit logs for new repair session
+        audit_logs.clear()
+        add_audit_log("🚀 SRE Agent initiated autonomous repair")
+        
+        # Node 1: Simulated Analysis (20s)
+        add_audit_log("📊 Analysis started - Scanning transaction modules...")
+        await asyncio.sleep(5)  # First 5s chunk
+        add_audit_log("🔍 Model switch verified - AI model ready for analysis")
+        await asyncio.sleep(5)  # Second 5s chunk
+        add_audit_log("🧠 Heuristic analysis of chained vulnerabilities...")
+        await asyncio.sleep(5)  # Third 5s chunk
+        add_audit_log("🎯 TypeError detected in tax calculation AND IndexError in payment processing")
+        await asyncio.sleep(5)  # Fourth 5s chunk
+        
+        # Node 2: Actual AI Repair logic from core_logic with thread_id config
+        add_audit_log("⚡ Generating AI repair strategy for Financial Transaction System...")
+        config = {"configurable": {"thread_id": "sre-prod-session"}}
+        result = await run_autonomous_repair(target_file, "TypeError in calculate_tax and IndexError in process_payment", config)
+        add_audit_log("🔧 AI repair logic executed successfully")
+        
+        # Node 3: Simulated Stability Verification (35s)
+        add_audit_log("🔧 Applying patch - Performing regression testing on patched logic...")
+        await asyncio.sleep(10)  # First 10s chunk
+        add_audit_log("🔍 Validating financial transaction integrity...")
+        await asyncio.sleep(10)  # Second 10s chunk
+        add_audit_log("✅ System stability verification complete")
+        await asyncio.sleep(10)  # Third 10s chunk
+        add_audit_log("🎉 Final validation passed - System ready for production")
+        await asyncio.sleep(5)  # Final 5s chunk
+        
+        total_mttr = round(time.time() - start_time, 2)
+        add_audit_log(f"📈 Autonomous repair completed - MTTR: {total_mttr:.2f}s")
+        
+        return RepairResponse(
+            status=result["status"],
+            iterations=result["iterations"],
+            history=result["history"] + [f"Final SRE verification passed. MTTR: {total_mttr:.2f}s"],
+            final_code=result["final_code"],
+            mttr_time=round(total_mttr, 2),
+            is_fixed=result["status"] == "success",
+            original_code=original_code,
+            audit_logs=audit_logs.copy()  # Include audit logs for frontend
+        )
+        
     except Exception as e:
-        add_audit_log(f"Warning: Could not read original file: {e}")
-        original_code = "# Original code not available"
-    
-    # Clear previous audit logs for new repair session
-    audit_logs.clear()
-    add_audit_log("🚀 SRE Agent initiated autonomous repair")
-    
-    # Node 1: Simulated Analysis (20s)
-    add_audit_log("📊 Analysis started - Scanning transaction modules...")
-    await asyncio.sleep(5)  # First 5s chunk
-    add_audit_log("🔍 Model switch verified - AI model ready for analysis")
-    await asyncio.sleep(5)  # Second 5s chunk
-    add_audit_log("🧠 Heuristic analysis of chained vulnerabilities...")
-    await asyncio.sleep(5)  # Third 5s chunk
-    add_audit_log("🎯 TypeError detected in tax calculation AND IndexError in payment processing")
-    await asyncio.sleep(5)  # Fourth 5s chunk
-    
-    # Node 2: Actual AI Repair logic from core_logic with thread_id config
-    add_audit_log("⚡ Generating AI repair strategy for Financial Transaction System...")
-    config = {"configurable": {"thread_id": "sre-prod-1"}}
-    result = await run_autonomous_repair(target_file, "TypeError in calculate_tax and IndexError in process_payment", config)
-    add_audit_log("🔧 AI repair logic executed successfully")
-    
-    # Node 3: Simulated Stability Verification (35s)
-    add_audit_log("🔧 Applying patch - Performing regression testing on patched logic...")
-    await asyncio.sleep(10)  # First 10s chunk
-    add_audit_log("🔍 Validating financial transaction integrity...")
-    await asyncio.sleep(10)  # Second 10s chunk
-    add_audit_log("✅ System stability verification complete")
-    await asyncio.sleep(10)  # Third 10s chunk
-    add_audit_log("🎉 Final validation passed - System ready for production")
-    await asyncio.sleep(5)  # Final 5s chunk
-    
-    total_mttr = round(time.time() - start_time, 2)
-    add_audit_log(f"📈 Autonomous repair completed - MTTR: {total_mttr:.2f}s")
-    
-    return RepairResponse(
-        status=result["status"],
-        iterations=result["iterations"],
-        history=result["history"] + [f"Final SRE verification passed. MTTR: {total_mttr:.2f}s"],
-        final_code=result["final_code"],
-        mttr_time=round(total_mttr, 2),
-        is_fixed=result["status"] == "success",
-        original_code=original_code,
-        audit_logs=audit_logs.copy()  # Include audit logs for frontend
-    )
+        # Ensure we always return valid JSON even on error
+        print(f"❌ Repair endpoint error: {e}")
+        return RepairResponse(
+            status="failed",
+            iterations=0,
+            history=[f"Repair failed: {str(e)}"],
+            final_code="",
+            mttr_time=0.0,
+            is_fixed=False,
+            original_code="",
+            audit_logs=[f"❌ Repair failed: {str(e)}"]
+        )
 
 @app.get("/audit-logs", response_model=AuditLogResponse)
 async def get_audit_logs() -> AuditLogResponse:

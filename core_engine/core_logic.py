@@ -20,30 +20,43 @@ except ImportError as e:
     print(f"Failed to import LLM components: {e}")
     sys.exit(1)
 
-# Initialize LLM with supported model
+# Initialize LLM with supported model and verify connection
+api_key = os.getenv("GROQ_API_KEY")
+if not api_key:
+    print("❌ GROQ_API_KEY not found in environment variables")
+    sys.exit(1)
+
 try:
     llm = ChatGroq(
-        model="llama-3.1-8b-instant",
-        api_key=os.getenv("GROQ_API_KEY")
+        model="llama-3.3-70b-specdec",
+        api_key=api_key
     )
-    print("✅ LLM initialized with llama-3.1-8b-instant")
+    # Test connection with a simple message
+    test_response = llm.invoke("Test connection")
+    print("✅ LLM initialized and connection verified with llama-3.3-70b-specdec")
 except Exception as e:
-    print(f"Failed to initialize LLM with llama-3.1-8b-instant: {e}")
+    print(f"Failed to initialize LLM with llama-3.3-70b-specdec: {e}")
     # Fallback to supported model
     try:
         llm = ChatGroq(
-            model="llama-3.3-70b-specdec",
-            api_key=os.getenv("GROQ_API_KEY")
+            model="llama-3.1-8b-instant",
+            api_key=api_key
         )
-        print("✅ LLM initialized with llama-3.3-70b-specdec fallback")
+        test_response = llm.invoke("Test connection")
+        print("✅ LLM initialized and connection verified with llama-3.1-8b-instant fallback")
     except Exception as e2:
         print(f"Failed to initialize fallback LLM: {e2}")
         # Final fallback
-        llm = ChatGroq(
-            model="llama-3.1-70b-specdec",
-            api_key=os.getenv("GROQ_API_KEY")
-        )
-        print("✅ LLM initialized with llama-3.1-70b-specdec final fallback")
+        try:
+            llm = ChatGroq(
+                model="llama-3.1-70b-specdec",
+                api_key=api_key
+            )
+            test_response = llm.invoke("Test connection")
+            print("✅ LLM initialized and connection verified with llama-3.1-70b-specdec final fallback")
+        except Exception as e3:
+            print(f"❌ All LLM models failed: {e3}")
+            sys.exit(1)
 
 # Import core components
 from llms import get_llm
