@@ -55,6 +55,11 @@ os.makedirs(os.path.dirname(LOCAL_UTILS_FILE), exist_ok=True)
 # Directory check for debugging
 print(f"🔍 [STARTUP] Current working directory: {os.getcwd()}")
 print(f"🔍 [STARTUP] Root directory contents: {os.listdir('.')}")
+
+# File System Mapping - Ensure complex_sandbox directory exists on Render
+os.makedirs('complex_sandbox/app', exist_ok=True)
+print(f"🔍 [STARTUP] Ensured complex_sandbox/app directory exists")
+
 print(f"🔍 [STARTUP] Checking if complex_sandbox exists: {os.path.exists(COMPLEX_SANDBOX_DIR)}")
 if os.path.exists(COMPLEX_SANDBOX_DIR):
     print(f"🔍 [STARTUP] Complex sandbox contents: {os.listdir(COMPLEX_SANDBOX_DIR)}")
@@ -683,42 +688,21 @@ async def clear_audit_logs_endpoint():
     clear_audit_logs()
     return {"status": "cleared", "message": "Audit logs cleared"}
 
+@app.get("/health")
+def health():
+    """Health check with sandbox existence verification"""
+    return {
+        'status': 'healthy', 
+        'sandbox': os.path.exists('complex_sandbox'),
+        'app_dir': os.path.exists('complex_sandbox/app'),
+        'current_dir': os.getcwd(),
+        'root_contents': os.listdir('.') if os.path.exists('.') else []
+    }
+
 @app.get("/sessions")
 async def sessions():
     """Simple placeholder for sessions endpoint"""
     return []
-
-@app.get("/health")
-async def health_check():
-    """Comprehensive health check for debugging"""
-    print(f"🔍 [HEALTH] Backend health check called")
-    print(f"🔍 [HEALTH] Current working directory: {os.getcwd()}")
-    print(f"🔍 [HEALTH] Target file path: {os.path.abspath(TARGET_FILE)}")
-    print(f"🔍 [HEALTH] File exists: {os.path.exists(TARGET_FILE)}")
-    
-    # Check if files are accessible
-    main_exists = os.path.exists(TARGET_FILE)
-    utils_exists = os.path.exists(COMPLEX_UTILS_FILE)
-    
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "paths": {
-            "target_file": os.path.abspath(TARGET_FILE),
-            "utils_file": os.path.abspath(COMPLEX_UTILS_FILE),
-            "local_sandbox": os.path.abspath(os.path.join(os.getcwd(), 'complex_sandbox'))
-        },
-        "files": {
-            "main_exists": main_exists,
-            "utils_exists": utils_exists,
-            "available_count": len(get_available_files())
-        },
-        "routes": {
-            "/files": "registered",
-            "/get-file/{path:path}": "registered",
-            "/health": "registered"
-        }
-    }
 
 # Add route debugging endpoint
 @app.get("/routes")
