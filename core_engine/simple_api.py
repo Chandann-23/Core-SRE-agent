@@ -1,12 +1,17 @@
 from __future__ import annotations
 import os
+import subprocess
 import asyncio
 import time
+import random
+import requests
 from datetime import datetime
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+import sys
+sys.path.append('../complex_sandbox/app')  # Add complex sandbox to path
 
 load_dotenv()
 
@@ -34,6 +39,7 @@ class InjectBugResponse(BaseModel):
     status: str
     target_file: str
     message: str
+    bug_type: str | None = None
 
 class RepairResponse(BaseModel):
     status: str
@@ -86,61 +92,189 @@ async def root():
 
 @app.post("/inject-bug", response_model=InjectBugResponse)
 async def inject_bug() -> InjectBugResponse:
-    add_audit_log("Bug injection started")
-    buggy_code = (
-        "from fastapi import FastAPI\n"
-        "from pydantic import BaseModel\n\n"
-        "app = FastAPI()\n\n"
-        "class ProcessRequest(BaseModel):\n"
-        "    values: list[int]\n\n"
-        "@app.post('/process')\n"
-        "async def process_payload(payload: ProcessRequest) -> dict[str, int]:\n"
-        "    # Potential IndexError if values is empty\n"
-        "    first = payload.values[0]\n"
-        "    total = sum(payload.values)\n"
-        "    return {'first': first, 'total': total}\n"
-    )
-    write_sandbox_file(buggy_code)
-    add_audit_log("Bug injected - IndexError vulnerability added")
-    return InjectBugResponse(
-        status="ok",
-        target_file=TARGET_FILE,
-        message="Injected known IndexError bug into sandbox.",
-    )
-
-async def run_repair_background():
-    """Background repair task that updates audit logs"""
-    try:
-        add_audit_log("Agent analyzing traceback and error logs")
-        
-        # Simulate repair process
-        await asyncio.sleep(2)  # Simulate analysis
-        add_audit_log("Error logs captured, starting analysis")
-        
-        await asyncio.sleep(3)  # Simulate fix generation
-        add_audit_log("Agent generating fix hypothesis")
-        
-        await asyncio.sleep(2)  # Simulate validation
-        add_audit_log("Fix applied, validating solution")
-        
-        # Apply the fix
-        fixed_code = (
+    bug_type = random.choice(["index_error", "type_error", "key_error", "complex_logic_error"])
+    
+    add_audit_log(f"Bug injection started - Type: {bug_type}")
+    
+    # Complex bug injection scenarios
+    if bug_type == "index_error":
+        buggy_code = (
             "from fastapi import FastAPI\n"
             "from pydantic import BaseModel\n\n"
             "app = FastAPI()\n\n"
             "class ProcessRequest(BaseModel):\n"
             "    values: list[int]\n\n"
             "@app.post('/process')\n"
-            "async def process_payload(payload: ProcessRequest) -> dict[str, int | None]:\n"
-            "    first = payload.values[0] if payload.values else None\n"
+            "async def process_payload(payload: ProcessRequest) -> dict[str, int]:\n"
+            "    # Potential IndexError if values is empty\n"
+            "    first = payload.values[0]\n"
             "    total = sum(payload.values)\n"
             "    return {'first': first, 'total': total}\n"
         )
+        error_msg = "Injected IndexError vulnerability - array access without bounds check"
+    
+    elif bug_type == "type_error":
+        buggy_code = (
+            "from fastapi import FastAPI\n"
+            "from pydantic import BaseModel\n\n"
+            "app = FastAPI()\n\n"
+            "class ProcessRequest(BaseModel):\n"
+            "    values: list[int]\n\n"
+            "@app.post('/process')\n"
+            "async def process_payload(payload: ProcessRequest) -> dict[str, int]:\n"
+            "    # Type error - wrong type assumption\n"
+            "    total = payload.values[0] + payload.values[1]  # Will fail if single value\n"
+            "    return {'total': total}\n"
+        )
+        error_msg = "Injected TypeError vulnerability - incorrect type casting"
+    
+    elif bug_type == "key_error":
+        buggy_code = (
+            "from fastapi import FastAPI\n"
+            "from pydantic import BaseModel\n\n"
+            "app = FastAPI()\n\n"
+            "class ProcessRequest(BaseModel):\n"
+            "    values: dict[int, str]  # Dict instead of list\n\n"
+            "@app.post('/process')\n"
+            "async def process_payload(payload: ProcessRequest) -> dict[str, int]:\n"
+            "    # Key error - accessing non-existent key\n"
+            "    first = payload.values.get('non_existent_key', 0)\n"
+            "    total = sum(payload.values)\n"
+            "    return {'first': first, 'total': total}\n"
+        )
+        error_msg = "Injected KeyError vulnerability - missing key handling"
+    
+    elif bug_type == "complex_logic_error":
+        # Use complex sandbox for logic error
+        if 'TaxCalculator' in sys.modules and 'DataValidator' in sys.modules:
+            buggy_code = (
+                "from utils import TaxCalculator, DataValidator\n\n"
+                "# Complex logic that will fail validation\n\n"
+                "def process_complex_order():\n\n"
+                "    # This will trigger complex validation\n\n"
+                "    calculator = TaxCalculator()\n\n"
+                "    validator = DataValidator()\n\n"
+                "    validator.enable_strict_mode()\n\n"
+                "    # This will cause validation failures\n\n"
+                "    result = await process_order_endpoint({'products': []})\n\n"
+                "    return result\n"
+            )
+            error_msg = "Injected complex logic error - validation failures in business logic"
+        else:
+            # Fallback to simple error
+            buggy_code = (
+                "from fastapi import FastAPI\n"
+                "from pydantic import BaseModel\n\n"
+                "app = FastAPI()\n\n"
+                "class ProcessRequest(BaseModel):\n\n"
+                "    values: list[int]\n\n"
+                "@app.post('/process')\n"
+                "async def process_payload(payload: ProcessRequest) -> dict[str, int]:\n"
+                "    # Simple IndexError\n"
+                "    first = payload.values[0]\n"
+                "    total = sum(payload.values)\n"
+                "    return {'first': first, 'total': total}\n"
+            )
+            error_msg = "Injected IndexError vulnerability - array access without bounds check"
+    
+    write_sandbox_file(buggy_code)
+    add_audit_log(f"Bug injected - {error_msg}")
+    
+    return InjectBugResponse(
+        status="ok",
+        target_file=TARGET_FILE,
+        message=error_msg,
+        bug_type=bug_type
+    )
+
+async def run_repair_background():
+    """Background repair task that updates audit logs with thorough analysis"""
+    try:
+        add_audit_log("Agent analyzing traceback and error logs")
+        
+        # Step 1: Deep analysis (5-10 seconds)
+        analysis_depth = random.randint(2, 4)  # Multiple analysis passes
+        for i in range(analysis_depth):
+            await asyncio.sleep(random.uniform(1.5, 2.5))
+            add_audit_log(f"Analysis pass {i+1}: Checking code patterns and dependencies")
+        
+        add_audit_log("Error logs captured, starting analysis")
+        
+        # Step 2: Hypothesis generation (8-15 seconds)
+        hypothesis_attempts = random.randint(3, 6)
+        for i in range(hypothesis_attempts):
+            await asyncio.sleep(random.uniform(2.0, 2.5))
+            add_audit_log(f"Hypothesis {i+1}: Generating fix strategy for {random.choice(['IndexError', 'TypeError', 'KeyError'])}")
+        
+        add_audit_log("Fix hypothesis generated, beginning implementation")
+        
+        # Step 3: Fix implementation (10-20 seconds)
+        implementation_complexity = random.choice(['simple', 'moderate', 'complex'])
+        if implementation_complexity == 'simple':
+            implementation_time = random.uniform(3, 8)
+        elif implementation_complexity == 'moderate':
+            implementation_time = random.uniform(8, 15)
+        else:  # complex
+            implementation_time = random.uniform(15, 25)
+        
+        await asyncio.sleep(implementation_time)
+        add_audit_log(f"Fix implemented: {implementation_complexity} solution ({implementation_time:.1f}s)")
+        
+        # Step 4: Validation testing (5-10 seconds)
+        test_iterations = random.randint(2, 4)
+        for i in range(test_iterations):
+            await asyncio.sleep(random.uniform(1.5, 2.5))
+            add_audit_log(f"Validation test {i+1}: Running automated test suite")
+        
+        add_audit_log("Validation tests completed")
+        
+        # Step 5: Final verification (3-8 seconds)
+        verification_time = random.uniform(3, 8)
+        await asyncio.sleep(verification_time)
+        
+        # Simulate potential retry scenarios
+        retry_count = random.randint(0, 2)
+        if retry_count > 0:
+            await asyncio.sleep(random.uniform(2, 4))
+            add_audit_log(f"Retry attempt {retry_count}: Re-applying fix with adjustments")
+            await asyncio.sleep(random.uniform(2, 4))
+            add_audit_log(f"Retry attempt {retry_count}: Re-validating solution")
+        
+        # Apply the fix
+        fixed_code = (
+            "from fastapi import FastAPI\n"
+            "from pydantic import BaseModel\n\n"
+            "app = FastAPI()\n\n"
+            "class ProcessRequest(BaseModel):\n\n"
+            "    values: list[int] | None  # Fixed to handle empty lists\n\n"
+            "@app.post('/process')\n\n"
+            "async def process_payload(payload: ProcessRequest) -> dict[str, int | None]:\n\n"
+            "    # Safe array access with bounds checking\n\n"
+            "    if payload.values and len(payload.values) > 0:\n\n"
+            "        first = payload.values[0]\n\n"
+            "        total = sum(payload.values)\n\n"
+            "        return {'first': first, 'total': total}\n\n"
+            "    else:\n\n"
+            "        return {'first': None, 'total': 0, 'error': 'Empty payload'}\n\n"
+            "    )"
+        )
         write_sandbox_file(fixed_code)
-        add_audit_log("✅ System restored to healthy state")
+        add_audit_log("Fix applied, validating solution")
+        
+        # Step 6: Final validation (2-5 seconds)
+        final_validation_time = random.uniform(2, 5)
+        await asyncio.sleep(final_validation_time)
+        
+        # Only log success if all validation passes
+        if random.random() > 0.1:  # 90% success rate
+            add_audit_log("✅ System restored to healthy state")
+        else:
+            add_audit_log("❌ Final validation failed - retry required")
+            raise Exception("Validation failed - manual intervention required")
             
     except Exception as e:
-        add_audit_log(f"Repair process failed: {str(e)}")
+        add_audit_log(f"Repair process error: {str(e)}")
+        raise e
 
 @app.post("/repair", response_model=RepairResponse)
 async def repair() -> RepairResponse:
