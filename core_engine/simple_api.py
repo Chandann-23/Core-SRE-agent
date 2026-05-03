@@ -28,11 +28,14 @@ frontend_url = os.getenv("FRONTEND_URL", "https://core-sre-engine.vercel.app")
 if frontend_url.endswith("/"):
     frontend_url = frontend_url[:-1]
 
+# Absolute root directory for clean path resolution
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+COMPLEX_SANDBOX_ROOT = os.path.join(ROOT_DIR, 'complex_sandbox', 'app')
+
 IS_DEMO = os.getenv('ENV') == 'production'
 
-# Base directory for file resolution
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-print(f"🔍 [CONFIG] Base directory: {BASE_DIR}")
+print(f"🔍 [CONFIG] Root directory: {ROOT_DIR}")
+print(f"🔍 [CONFIG] Complex sandbox root: {COMPLEX_SANDBOX_ROOT}")
 print(f"🔍 [CONFIG] Frontend URL: {frontend_url}")
 
 # Dynamic pathing for Render compatibility
@@ -273,18 +276,27 @@ async def get_files() -> dict:
 
 @app.get("/get-file/{path:path}", response_model=dict)
 async def get_file_content(path: str) -> dict:
-    """Get content of a specific complex sandbox file - Simplified"""
+    """Get content of a specific complex sandbox file - Fixed recursive path loop"""
     print(f"🔍 [API] /get-file/{path} endpoint called")
     
-    # Simple path resolution - try core_engine directory first
-    target_path = os.path.join(BASE_DIR, path)
+    # Security: Strip any leading slashes and complex_sandbox prefixes to prevent nesting
+    clean_path = path.lstrip('/')
+    if clean_path.startswith('complex_sandbox/'):
+        clean_path = clean_path.replace('complex_sandbox/', '', 1)
+    if clean_path.startswith('app/'):
+        clean_path = clean_path.replace('app/', '', 1)
     
-    if os.path.exists(target_path):
+    # Clean resolution: Use absolute ROOT_DIR only once
+    final_path = os.path.join(ROOT_DIR, 'complex_sandbox', 'app', clean_path)
+    
+    print(f"🔍 [API] Clean path resolution: {path} -> {clean_path} -> {final_path}")
+    
+    if os.path.exists(final_path):
         try:
-            with open(target_path, 'r') as f:
+            with open(final_path, 'r') as f:
                 content = f.read()
             
-            filename = os.path.basename(target_path)
+            filename = os.path.basename(final_path)
             file_type = "main" if filename == "main.py" else "utils" if filename == "utils.py" else "unknown"
             
             print(f"🔍 [API] SUCCESS: Serving {filename} with {len(content)} characters")
@@ -293,7 +305,7 @@ async def get_file_content(path: str) -> dict:
                 "content": content,
                 "type": file_type,
                 "timestamp": datetime.now().isoformat(),
-                "resolved_path": target_path
+                "resolved_path": final_path
             }
         except Exception as e:
             print(f"❌ [API] Error reading file: {e}")
@@ -301,7 +313,7 @@ async def get_file_content(path: str) -> dict:
     # Fallback - return error message
     return {
         "filename": path,
-        "content": f"# File '{path}' not found or could not be read",
+        "content": f"# File '{path}' not found or could not be read\n# Clean path: {clean_path}\n# Final path: {final_path}",
         "type": "error",
         "timestamp": datetime.now().isoformat()
     }
