@@ -74,8 +74,11 @@ in minimizing downtime and reducing operational overhead.
             </div>
           </div>
           <button
-            onClick={onClose}
-            className="p-2 rounded-md hover:bg-slate-800 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className="p-2 rounded-md hover:bg-slate-800 transition-colors z-50 relative"
           >
             <X className="w-5 h-5 text-slate-400" />
           </button>
@@ -176,8 +179,11 @@ in minimizing downtime and reducing operational overhead.
               Download Audit Report
             </button>
             <button
-              onClick={onClose}
-              className="px-4 py-2 bg-emerald-600 border border-emerald-500 rounded-md text-white hover:bg-emerald-700 transition-colors text-sm font-medium"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="px-4 py-2 bg-emerald-600 border border-emerald-500 rounded-md text-white hover:bg-emerald-700 transition-colors text-sm font-medium z-50 relative"
             >
               Close Report
             </button>

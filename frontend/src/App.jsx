@@ -284,10 +284,28 @@ function App() {
   };
 
   const handleCloseSuccessModal = () => {
+    console.log('🔄 Closing success modal and resetting all states');
+    
+    // Close the modal
     setShowSuccessModal(false);
-    // Reset timer for next audit
+    
+    // Reset all related states for fresh start
+    setIsTestActive(false);
+    setIsRunningFullAudit(false);
+    setSystemStatus('Healthy');
+    setShowWaitingMessage(false);
+    
+    // Reset timer completely
     setMttrTime(0);
     setMttrStartTime(null);
+    setFinalMttrTime(0);
+    
+    // Stop any running processes
+    stopAuditPolling();
+    stopMttrTimer();
+    
+    // Clear logs for clean start (optional - comment out if you want to keep logs)
+    // setAuditLogs([]);
   };
 
   const runFullReliabilityAudit = async () => {
