@@ -78,36 +78,54 @@ function App() {
   const [showWaitingMessage, setShowWaitingMessage] = useState(false);
   const [currentFile, setCurrentFile] = useState("main.py");
   const [AVAILABLE_FILES, setAvailableFiles] = useState([]);
+  const [backendStatus, setBackendStatus] = useState('Checking backend...');
   
   const auditPollRef = useRef(null);
   const mttrIntervalRef = useRef(null);
 
-  const fetchComplexFiles = async (retryCount = 0) => {
+  const checkBackendHealth = async (retryCount = 0) => {
     try {
       // Exponential backoff: 1s, 2s, 4s
       const delay = Math.min(1000 * Math.pow(2, retryCount), 4000);
       if (retryCount > 0) {
-        console.log(`Retrying file fetch (${retryCount}/3) in ${delay}ms...`);
+        console.log(`Retrying health check (${retryCount}/3) in ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
       
+      const res = await apiCall('get', '/health');
+      if (res.data && res.data.status === 'healthy') {
+        console.log('✅ Backend Verified: simple_api logic active');
+        setBackendStatus('Backend Verified: simple_api logic active');
+        // Once health check passes, fetch files
+        await fetchComplexFiles();
+        return true;
+      }
+    } catch (err) {
+      console.error(`Health check failed (attempt ${retryCount + 1}/3):`, err);
+      if (retryCount < 2) {
+        await checkBackendHealth(retryCount + 1);
+      } else {
+        console.error('Backend health check failed after 3 attempts');
+        setBackendStatus('Backend unavailable - please refresh');
+      }
+    }
+  };
+
+  const fetchComplexFiles = async (retryCount = 0) => {
+    try {
       const res = await apiCall('get', '/files');
       if (res.data && res.data.files) {
         setAvailableFiles(res.data.files || []);
         setCurrentFile(res.data.current_file || "main.py");
+        // Fetch the default file content
+        await fetchComplexFileContent(res.data.current_file || "main.py");
       }
-    } catch (err) {
-      console.error("Failed to fetch complex files:", err);
-      
-      // Exponential backoff retry for 404/500 errors
-      if (retryCount < 3 && (err.response?.status === 404 || err.response?.status === 500)) {
-        console.log(`Retrying file fetch (${retryCount + 1}/3) with exponential backoff...`);
-        setTimeout(() => fetchComplexFiles(retryCount + 1), 1000 * Math.pow(2, retryCount));
-      } else {
-        // Set fallback values to prevent UI crash
-        setAvailableFiles([{"name": "main.py", "path": "/tmp/complex_sandbox/app/main.py", "type": "main"}]);
-        setCurrentFile("main.py");
-        setCode("# Error loading file content - Backend spinning up...");
+      } catch (err) {
+        console.error('Failed to fetch files:', err);
+        setAvailableFiles([
+          {name: "main.py", path: "complex_sandbox/app/main.py", type: "main"},
+          {name: "utils.py", path: "complex_sandbox/app/utils.py", type: "utils"}
+        ]);
       }
     }
   };
@@ -136,8 +154,8 @@ function App() {
         console.log(`Retrying file content fetch (${retryCount + 1}/3) with exponential backoff...`);
         setTimeout(() => fetchComplexFileContent(filename, retryCount + 1), 1000 * Math.pow(2, retryCount));
       } else {
-        // Show loading message instead of static error
-        setCode("# Backend spinning up on Render... Please wait while the system initializes.");
+        // Show backend status instead of static error
+        setCode(`# ${backendStatus}`);
         setShowWaitingMessage(true);
       }
     }
@@ -493,7 +511,7 @@ function App() {
   useEffect(() => {
     try {
       fetchPastSessions();
-      fetchComplexFiles();
+      checkBackendHealth(); // Check health first, then fetch files
       fetchComplexFileContent("main.py");
     } catch (error) {
       console.error('Initialization error:', error);
