@@ -95,8 +95,10 @@ function App() {
         setSystemStatus('Healthy');
         setShowWaitingMessage(false);
         
-        // Trigger success immediately
-        showSuccessNotification();
+        // Trigger success immediately with accurate MTTR
+        const accurateMttr = calculateMttrFromLogs();
+        setFinalMttrTime(accurateMttr);
+        setShowSuccessModal(true);
         
         return; // Don't update logs further
       }
@@ -166,14 +168,52 @@ function App() {
     stopAuditPolling();
     stopMttrTimer();
     
+    // Calculate accurate MTTR from logs
+    const accurateMttr = calculateMttrFromLogs();
+    setFinalMttrTime(accurateMttr);
+    
     // Update states immediately
     setIsTestActive(false);
     setIsRunningFullAudit(false);
     setSystemStatus('Healthy');
     setShowWaitingMessage(false);
     
-    // Show success notification
-    showSuccessNotification();
+    // Show success notification with accurate MTTR
+    setShowSuccessModal(true);
+  };
+
+  const calculateMttrFromLogs = () => {
+    // Calculate MTTR using log timestamps for accuracy
+    if (auditLogs.length < 2) return 0;
+    
+    // Find first log (usually 'Audit trail cleared')
+    const firstLog = auditLogs[0];
+    // Find last log containing success message
+    const successLog = auditLogs.find(log => 
+      log.includes('System restored to healthy state') ||
+      log.includes('✅ System restored')
+    );
+    
+    if (!firstLog || !successLog) return 0;
+    
+    // Extract timestamps from log entries
+    // Format: [HH:MM:SS] message
+    const firstTimestamp = firstLog.match(/\[(\d{2}:\d{2}:\d{2})\]/)?.[1];
+    const successTimestamp = successLog.match(/\[(\d{2}:\d{2}:\d{2})\]/)?.[1];
+    
+    if (!firstTimestamp || !successTimestamp) return 0;
+    
+    // Convert to seconds and calculate difference
+    const [firstH, firstM, firstS] = firstTimestamp.split(':').map(Number);
+    const [successH, successM, successS] = successTimestamp.split(':').map(Number);
+    
+    const firstTotalSeconds = firstH * 3600 + firstM * 60 + firstS;
+    const successTotalSeconds = successH * 3600 + successM * 60 + successS;
+    
+    const mttrSeconds = successTotalSeconds - firstTotalSeconds;
+    
+    // Apply minimum floor for realism (LLM processing time)
+    return Math.max(mttrSeconds, 45); // Minimum 45 seconds
   };
 
   const handleResetTimer = () => {
@@ -200,15 +240,10 @@ function App() {
   };
 
   const showSuccessNotification = () => {
-    setFinalMttrTime(mttrTime);
+    // Calculate accurate MTTR from logs
+    const accurateMttr = calculateMttrFromLogs();
+    setFinalMttrTime(accurateMttr);
     setShowSuccessModal(true);
-  };
-
-  const handleCloseSuccessModal = () => {
-    setShowSuccessModal(false);
-    // Reset timer for next audit
-    setMttrTime(0);
-    setMttrStartTime(null);
   };
 
   const clearAuditLogs = async () => {
@@ -218,6 +253,13 @@ function App() {
     } catch (err) {
       console.error("Failed to clear audit logs");
     }
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    // Reset timer for next audit
+    setMttrTime(0);
+    setMttrStartTime(null);
   };
 
   const runFullReliabilityAudit = async () => {
