@@ -333,16 +333,16 @@ async def repair_bug():
     return RepairResponse(
         status=result["status"],
         iterations=result["iterations"],
-        history=result["history"] + [f"Final SRE verification passed. MTTR: {total_mttr}s"],
+        history=result["history"] + [f"Final SRE verification passed. MTTR: {total_mttr:.2f}s"],
         final_code=result["final_code"],
-        mttr_time=total_mttr,
+        mttr_time=round(total_mttr, 2),
         is_fixed=result["status"] == "success",
         original_code=original_code
     )
 
 @app.get("/audit-logs", response_model=AuditLogResponse)
 async def get_audit_logs() -> AuditLogResponse:
-    """Get the current audit trail"""
+    """Get the current audit trail for frontend display"""
     return AuditLogResponse(
         logs=audit_logs.copy(),
         timestamp=datetime.now().isoformat(),
@@ -355,6 +355,22 @@ async def clear_audit_logs_endpoint():
     audit_logs.clear()
     add_audit_log("Audit trail cleared")
     return {"status": "cleared", "message": "Audit logs cleared"}
+
+@app.get("/audit-logs-stream")
+async def get_audit_logs_stream():
+    """Stream audit logs for real-time frontend updates"""
+    from fastapi.responses import StreamingResponse
+    
+    async def generate_audit_log():
+        for log in audit_logs:
+            yield f"data: {log}\n\n"
+        yield "data: \n\n"
+    
+    return StreamingResponse(
+        content_type="text/plain",
+        media_type="text/event-stream",
+        content=generate_audit_log()
+    )
 
 @app.get("/health")
 def health():

@@ -17,8 +17,22 @@ try:
     from langgraph.graph import END, StateGraph
     from langgraph.checkpoint.memory import MemorySaver
 except ImportError as e:
-    print(f"Optional import failed: {e}")
+    print(f"Failed to import LLM components: {e}")
     sys.exit(1)
+
+# Initialize LLM with supported model
+try:
+    llm = ChatGroq(
+        model="llama-3.1-8b-instant",
+        api_key=os.getenv("GROQ_API_KEY")
+    )
+except Exception as e:
+    print(f"Failed to initialize LLM: {e}")
+    # Fallback to supported model
+    llm = ChatGroq(
+        model="llama-3.1-70b-specdec",
+        api_key=os.getenv("GROQ_API_KEY")
+    )
 
 # Import core components
 from llms import get_llm
@@ -368,6 +382,17 @@ async def run_autonomous_repair(target_file: str, error_logs: str, config: dict 
             "final_code": result.get("final_code", ""),
             "mttr_time": result.get("mttr_time"),
             "final_error_logs": result.get("final_error_logs", "")
+        }
+        
+    except Exception as e:
+        print(f"❌ [SRE] Repair workflow failed: {e}")
+        return {
+            "status": "failed",
+            "iterations": 0,
+            "history": [f"Repair workflow failed: {str(e)}"],
+            "final_code": code_context,
+            "mttr_time": None,
+            "final_error_logs": str(e)
         }
         
     except Exception as e:
