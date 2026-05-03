@@ -284,10 +284,12 @@ function App() {
   };
 
   const handleCloseSuccessModal = () => {
-    console.log('🔄 Closing success modal and resetting all states');
+    console.log('🔄 NUCLEAR RESET: handleCloseSuccessModal called!');
+    console.log('🔄 Current showSuccessModal state:', showSuccessModal);
     
     // Close the modal
     setShowSuccessModal(false);
+    console.log('🔄 showSuccessModal set to false');
     
     // Reset all related states for fresh start
     setIsTestActive(false);
@@ -304,8 +306,7 @@ function App() {
     stopAuditPolling();
     stopMttrTimer();
     
-    // Clear logs for clean start (optional - comment out if you want to keep logs)
-    // setAuditLogs([]);
+    console.log('🔄 All states reset successfully');
   };
 
   const runFullReliabilityAudit = async () => {

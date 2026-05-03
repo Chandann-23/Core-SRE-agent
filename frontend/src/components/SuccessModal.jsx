@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { CheckCircle, Download, X, Trophy, Clock, Shield } from 'lucide-react';
 
 const SuccessModal = ({ 
@@ -8,6 +8,22 @@ const SuccessModal = ({
   auditLogs, 
   vulnerabilityType = "IndexError" 
 }) => {
+  // Add Escape key support
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape' && isOpen) {
+        console.log('🔄 NUCLEAR RESET: Escape key pressed!');
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscapeKey);
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [isOpen, onClose]);
+
+  console.log('🔄 NUCLEAR RESET: SuccessModal render, isOpen:', isOpen);
   const formatTime = (seconds) => {
     if (!seconds || seconds === 0) return "00:00";
     const mins = Math.floor(seconds / 60);
@@ -60,8 +76,8 @@ in minimizing downtime and reducing operational overhead.
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="mx-4 max-w-2xl w-full bg-slate-900 border border-slate-700 rounded-xl shadow-2xl">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm pointer-events-none">
+      <div className="mx-4 max-w-2xl w-full bg-slate-900 border border-slate-700 rounded-xl shadow-2xl pointer-events-auto" style={{ zIndex: 9999 }}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-800">
           <div className="flex items-center gap-3">
@@ -75,10 +91,13 @@ in minimizing downtime and reducing operational overhead.
           </div>
           <button
             onClick={(e) => {
+              console.log('🔄 NUCLEAR RESET: X button clicked!');
               e.stopPropagation();
+              e.preventDefault();
               onClose();
             }}
-            className="p-2 rounded-md hover:bg-slate-800 transition-colors z-50 relative"
+            className="p-2 rounded-md hover:bg-slate-800 transition-colors z-[9999] relative cursor-pointer"
+            style={{ zIndex: 9999 }}
           >
             <X className="w-5 h-5 text-slate-400" />
           </button>
@@ -180,10 +199,13 @@ in minimizing downtime and reducing operational overhead.
             </button>
             <button
               onClick={(e) => {
+                console.log('🔄 NUCLEAR RESET: Close Report button clicked!');
                 e.stopPropagation();
+                e.preventDefault();
                 onClose();
               }}
-              className="px-4 py-2 bg-emerald-600 border border-emerald-500 rounded-md text-white hover:bg-emerald-700 transition-colors text-sm font-medium z-50 relative"
+              className="px-4 py-2 bg-emerald-600 border border-emerald-500 rounded-md text-white hover:bg-emerald-700 transition-colors text-sm font-medium z-[9999] relative cursor-pointer"
+              style={{ zIndex: 9999 }}
             >
               Close Report
             </button>
