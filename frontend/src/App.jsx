@@ -250,12 +250,14 @@ function App() {
   };
 
   const checkForSuccessInLogs = () => {
-    // Check if audit logs indicate success - BULLETPROOF detection
+    // Check if audit logs indicate success - Updated for 6-step analysis process
     const successIndicators = [
-      'System restored to healthy state',
-      '✅ System restored',
-      'Agent successfully repaired',
-      'Fix applied, validating solution'
+      'System restored successfully after bug fix',
+      'Executed pytest /tmp/complex_sandbox/tests/test_app.py with result status=passed',
+      '🎉 [Executor] System restored - All tests passed!',
+      '🎉 [Graph] Bug fixed successfully!',
+      'Step 4: Call /repair',
+      'Step 5: Start audit polling'
     ];
     
     return auditLogs.some(log => 
@@ -750,35 +752,62 @@ function App() {
             <div className="min-h-0 border-b border-r border-slate-800 p-4 lg:border-b-0">
               <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Explorer</div>
               <div className="space-y-1 text-sm">
-                <div className="flex items-center gap-2 text-slate-200">
-                  <ChevronDown size={14} />
-                  <FolderOpen size={14} />
-                  <span>target_sandbox</span>
-                </div>
-                <div className="ml-5 flex items-center gap-2 text-slate-300">
-                  <ChevronRight size={14} className="opacity-0" />
-                  <Folder size={14} />
-                  <span>app</span>
-                </div>
-                <div className="ml-11 flex items-center gap-2 rounded bg-slate-900/60 px-2 py-1 text-slate-100">
-                  <FileCode size={14} />
-                  <span>main.py</span>
-                </div>
-                <div className="ml-5 flex items-center gap-2 text-slate-300">
-                  <ChevronRight size={14} className="opacity-0" />
-                  <Folder size={14} />
-                  <span>tests</span>
-                </div>
-                <div className="ml-11 flex items-center gap-2 px-2 py-1 text-slate-400">
-                  <FileCode size={14} />
-                  <span>test_app.py</span>
-                </div>
+                {/* Dynamic File Tree from API */}
+                {AVAILABLE_FILES.length > 0 ? (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-slate-200">
+                      <ChevronDown size={14} />
+                      <FolderOpen size={14} />
+                      <span>complex_sandbox</span>
+                    </div>
+                    {AVAILABLE_FILES.map((file) => (
+                      <div
+                        key={file.name}
+                        className={`ml-11 flex items-center gap-2 rounded px-2 py-1 cursor-pointer transition ${
+                          currentFile === file.name
+                            ? "bg-slate-900/60 text-slate-100"
+                            : "text-slate-400 hover:bg-slate-900/40 hover:text-slate-200"
+                        }`}
+                        onClick={() => fetchComplexFileContent(file.name)}
+                      >
+                        <FileCode size={14} />
+                        <span>{file.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-slate-200">
+                      <ChevronDown size={14} />
+                      <FolderOpen size={14} />
+                      <span>complex_sandbox</span>
+                    </div>
+                    <div className="ml-5 flex items-center gap-2 text-slate-300">
+                      <ChevronRight size={14} className="opacity-0" />
+                      <Folder size={14} />
+                      <span>app</span>
+                    </div>
+                    <div className="ml-11 flex items-center gap-2 rounded bg-slate-900/60 px-2 py-1 text-slate-100">
+                      <FileCode size={14} />
+                      <span>main.py</span>
+                    </div>
+                    <div className="ml-5 flex items-center gap-2 text-slate-300">
+                      <ChevronRight size={14} className="opacity-0" />
+                      <Folder size={14} />
+                      <span>tests</span>
+                    </div>
+                    <div className="ml-11 flex items-center gap-2 px-2 py-1 text-slate-400">
+                      <FileCode size={14} />
+                      <span>test_app.py</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="relative flex min-h-0 flex-col border-b border-r border-slate-800 lg:border-b-0">
               <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
-                <div className="text-xs text-slate-400">target_sandbox/app/main.py</div>
+                <div className="text-xs text-slate-400">{currentFile || 'complex_sandbox/app/main.py'}</div>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -896,7 +925,7 @@ function App() {
                 {!timelineEntries.length && (
                   <>
                     <div className="rounded border border-slate-800 bg-black/40 px-3 py-2 font-mono text-xs text-emerald-300">
-                      $ pytest -q target_sandbox/tests/test_app.py
+                      $ pytest -q complex_sandbox/tests/test_app.py
                     </div>
                     <div className="max-w-[95%] rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2 text-sm text-slate-300">
                       Agent thought: Ready to inject a bug or run autonomous repair.
