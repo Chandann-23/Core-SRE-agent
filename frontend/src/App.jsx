@@ -3,8 +3,9 @@ import axios from "axios";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import ReactDiffViewer from "react-diff-viewer-continued";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { Activity, Bug, ChevronDown, ChevronRight, FileCode, Folder, FolderOpen, PanelLeftClose, PanelLeftOpen, Plus, Terminal, Wrench } from "lucide-react";
+import { Activity, Bug, ChevronDown, ChevronRight, FileCode, Folder, FolderOpen, PanelLeftClose, PanelLeftOpen, Plus, Terminal, Wrench, Play } from "lucide-react";
 import logo from "./assets/logo.png";
+import ReliabilityTerminal from "./components/ReliabilityTerminal";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const FALLBACK_CODE = `from fastapi import FastAPI
@@ -34,14 +35,147 @@ function App() {
   const [status, setStatus] = useState("IDLE");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const lastLogRef = useRef(null);
+  
+  // Reliability Lab states
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [isTestActive, setIsTestActive] = useState(false);
+  const [mttrStartTime, setMttrStartTime] = useState(null);
+  const [mttrTime, setMttrTime] = useState(0);
+  const [systemStatus, setSystemStatus] = useState("Healthy");
+  const [isRunningFullAudit, setIsRunningFullAudit] = useState(false);
+  
+  const auditPollRef = useRef(null);
+  const mttrIntervalRef = useRef(null);
 
   const fetchStatus = async () => {
     try {
       const res = await axios.get(`${API_BASE}/status`);
       setCode(res.data.code_context);
+      setSystemStatus(res.data.status);
+      
+      // Auto-stop MTTR timer when system becomes healthy
+      if (res.data.status === 'Healthy' && isTestActive && mttrStartTime) {
+        stopMttrTimer();
+        setIsTestActive(false);
+      }
     } catch (err) {
       setCode(FALLBACK_CODE);
       console.error("Backend offline");
+    }
+  };
+
+  const fetchAuditLogs = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/audit-logs`);
+      setAuditLogs(res.data.logs || []);
+    } catch (err) {
+      console.error("Failed to fetch audit logs");
+    }
+  };
+
+  const startAuditPolling = () => {
+    if (auditPollRef.current) return;
+    
+    // Initial fetch
+    fetchAuditLogs();
+    
+    // Poll every 2 seconds
+    auditPollRef.current = setInterval(fetchAuditLogs, 2000);
+  };
+
+  const stopAuditPolling = () => {
+    if (auditPollRef.current) {
+      clearInterval(auditPollRef.current);
+      auditPollRef.current = null;
+    }
+  };
+
+  const startMttrTimer = () => {
+    setMttrStartTime(Date.now());
+    setMttrTime(0);
+    
+    mttrIntervalRef.current = setInterval(() => {
+      setMttrTime(Math.floor((Date.now() - mttrStartTime) / 1000));
+    }, 1000);
+  };
+
+  const stopMttrTimer = () => {
+    if (mttrIntervalRef.current) {
+      clearInterval(mttrIntervalRef.current);
+      mttrIntervalRef.current = null;
+    }
+  };
+
+  const clearAuditLogs = async () => {
+    try {
+      await axios.delete(`${API_BASE}/audit-logs`);
+      setAuditLogs([]);
+    } catch (err) {
+      console.error("Failed to clear audit logs");
+    }
+  };
+
+  const runFullReliabilityAudit = async () => {
+    if (isRunningFullAudit) return;
+    
+    setIsRunningFullAudit(true);
+    try {
+      // Step 1: Clear current logs
+      await clearAuditLogs();
+      
+      // Step 2: Call /inject-bug
+      setStatus("VULNERABLE");
+      setShowDiff(false);
+      await axios.post(`${API_BASE}/inject-bug`);
+      await fetchStatus();
+      
+      // Step 3: Automatically open the terminal
+      setIsTerminalOpen(true);
+      
+      // Step 4: Start monitoring
+      setIsTestActive(true);
+      startAuditPolling();
+      startMttrTimer();
+      
+      // Step 5: Call /repair
+      const res = await axios.post(`${API_BASE}/repair`);
+      setHistory(Array.isArray(res.data.history) ? res.data.history : []);
+      
+      // Step 6: Poll status and logs simultaneously
+      const pollInterval = setInterval(async () => {
+        await fetchStatus();
+        await fetchAuditLogs();
+        
+        // Stop polling when system is healthy
+        if (systemStatus === 'Healthy') {
+          clearInterval(pollInterval);
+          stopAuditPolling();
+          setIsTestActive(false);
+          setIsRunningFullAudit(false);
+          
+          // Show final report
+          setTimeout(() => {
+            alert(`✅ Reliability Audit Complete!\n\nMTTR: ${Math.floor(mttrTime)} seconds\nStatus: System Restored\n\nThe autonomous agent successfully detected and repaired the injected vulnerability.`);
+          }, 500);
+        }
+      }, 1000);
+      
+      // Timeout after 2 minutes
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        stopAuditPolling();
+        setIsTestActive(false);
+        setIsRunningFullAudit(false);
+        alert("⚠️ Audit timeout. The repair process may still be running in the background.");
+      }, 120000);
+      
+    } catch (err) {
+      console.error("Full audit failed:", err);
+      setIsRunningFullAudit(false);
+      setIsTestActive(false);
+      stopAuditPolling();
+      alert("❌ Reliability audit failed. Please try again.");
     }
   };
 
@@ -81,16 +215,28 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (isRepairing) {
+    if (isTestActive) {
+      document.title = "🔬 Reliability Test Active | CORE SRE";
+    } else if (isRepairing) {
       document.title = "🛠️ Repairing... | CORE SRE";
     } else {
       document.title = "CORE SRE | Autonomous Recovery";
     }
-  }, [isRepairing]);
+  }, [isTestActive, isRepairing]);
 
   useEffect(() => {
     lastLogRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [history, isRepairing]);
+
+  // Cleanup intervals on unmount
+  useEffect(() => {
+    return () => {
+      stopAuditPolling();
+      if (mttrIntervalRef.current) {
+        clearInterval(mttrIntervalRef.current);
+      }
+    };
+  }, []);
 
   const handleAction = async (type) => {
     if (type === "inject") {
@@ -262,8 +408,18 @@ function App() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
+                onClick={runFullReliabilityAudit}
+                disabled={isRunningFullAudit || isTestActive}
+                className="inline-flex items-center gap-2 rounded-md border border-blue-600 bg-blue-600 px-4 py-1.5 text-xs text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 font-semibold"
+              >
+                <Play size={14} className={isRunningFullAudit ? "animate-pulse" : ""} />
+                {isRunningFullAudit ? "Running Audit..." : "Run Full Reliability Audit"}
+              </button>
+              <button
+                type="button"
                 onClick={() => handleAction("inject")}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-800"
+                disabled={isTestActive}
+                className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Bug size={14} />
                 Inject Bug
@@ -271,7 +427,7 @@ function App() {
               <button
                 type="button"
                 onClick={() => handleAction("repair")}
-                disabled={isRepairing}
+                disabled={isRepairing || isTestActive}
                 className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-100 px-3 py-1.5 text-xs text-slate-950 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isRepairing ? <Activity size={14} className="animate-spin" /> : <Wrench size={14} />}
@@ -485,6 +641,15 @@ function App() {
               </div>
             </div>
           </section>
+          
+          <ReliabilityTerminal
+            isOpen={isTerminalOpen}
+            auditLogs={auditLogs}
+            isTestActive={isTestActive}
+            mttrTime={mttrTime}
+            systemStatus={systemStatus}
+            onToggle={() => setIsTerminalOpen(!isTerminalOpen)}
+          />
         </main>
       </div>
     </div>
