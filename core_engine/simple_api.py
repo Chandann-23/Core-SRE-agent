@@ -28,15 +28,19 @@ IS_DEMO = os.getenv('ENV') == 'production'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 print(f"🔍 [CONFIG] Base directory: {BASE_DIR}")
 
+# Dynamic pathing for Render compatibility
+COMPLEX_SANDBOX_DIR = os.path.join(os.getcwd(), 'complex_sandbox')
+print(f"🔍 [CONFIG] Complex sandbox directory: {COMPLEX_SANDBOX_DIR}")
+
 # Use /tmp/complex_sandbox for Render's ephemeral filesystem
 TMP_SANDBOX_DIR = "/tmp/complex_sandbox"
 TARGET_FILE = os.path.join(TMP_SANDBOX_DIR, "app/main.py")
 COMPLEX_UTILS_FILE = os.path.join(TMP_SANDBOX_DIR, "app/utils.py")
 
 # Fallback to local complex_sandbox if /tmp doesn't work
-LOCAL_SANDBOX_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'complex_sandbox'))
-LOCAL_TARGET_FILE = os.path.abspath(os.path.join(BASE_DIR, '..', 'complex_sandbox', 'app', 'main.py'))
-LOCAL_UTILS_FILE = os.path.abspath(os.path.join(BASE_DIR, '..', 'complex_sandbox', 'app', 'utils.py'))
+LOCAL_SANDBOX_DIR = os.path.join(os.getcwd(), 'complex_sandbox')
+LOCAL_TARGET_FILE = os.path.join(LOCAL_SANDBOX_DIR, 'app', 'main.py')
+LOCAL_UTILS_FILE = os.path.join(LOCAL_SANDBOX_DIR, 'app', 'utils.py')
 
 print(f"🔍 [PATH] Local sandbox directory: {LOCAL_SANDBOX_DIR}")
 print(f"🔍 [PATH] Local target file: {LOCAL_TARGET_FILE}")
@@ -47,6 +51,18 @@ os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
 os.makedirs(os.path.dirname(COMPLEX_UTILS_FILE), exist_ok=True)
 os.makedirs(os.path.dirname(LOCAL_TARGET_FILE), exist_ok=True)
 os.makedirs(os.path.dirname(LOCAL_UTILS_FILE), exist_ok=True)
+
+# Directory check for debugging
+print(f"🔍 [STARTUP] Current working directory: {os.getcwd()}")
+print(f"🔍 [STARTUP] Root directory contents: {os.listdir('.')}")
+print(f"🔍 [STARTUP] Checking if complex_sandbox exists: {os.path.exists(COMPLEX_SANDBOX_DIR)}")
+if os.path.exists(COMPLEX_SANDBOX_DIR):
+    print(f"🔍 [STARTUP] Complex sandbox contents: {os.listdir(COMPLEX_SANDBOX_DIR)}")
+    app_dir = os.path.join(COMPLEX_SANDBOX_DIR, 'app')
+    if os.path.exists(app_dir):
+        print(f"🔍 [STARTUP] Complex sandbox app contents: {os.listdir(app_dir)}")
+else:
+    print(f"❌ [STARTUP] Complex sandbox directory not found!")
 
 # Copy files from local complex_sandbox to /tmp if they don't exist
 print(f"🔍 [INIT] Checking if files need to be copied to /tmp/complex_sandbox...")
@@ -600,17 +616,19 @@ async def get_file_content(path: str) -> dict:
     print(f"🔍 [API] /get-file/{path} endpoint called")
     print(f"🔍 [API] Resolving path from BASE_DIR: {BASE_DIR}")
     
-    # Construct absolute path using BASE_DIR
+    # Construct absolute path using dynamic pathing
     if path.startswith('complex_sandbox/'):
         # Remove prefix and construct absolute path
         relative_path = path.replace('complex_sandbox/', '')
-        absolute_path = os.path.join(BASE_DIR, '..', 'complex_sandbox', relative_path)
+        target_path = os.path.join(COMPLEX_SANDBOX_DIR, relative_path)
+        print(f"🔍 [API] Complex sandbox path detected: {target_path}")
     else:
         # Direct path resolution
-        absolute_path = os.path.join(BASE_DIR, path)
+        target_path = os.path.join(COMPLEX_SANDBOX_DIR, path)
+        print(f"🔍 [API] Direct path resolution: {target_path}")
     
-    absolute_path = os.path.abspath(absolute_path)
-    print(f"🔍 [API] Resolved absolute path: {absolute_path}")
+    absolute_path = os.path.abspath(target_path)
+    print(f"🔍 [API] API searching for file at: {os.path.abspath(absolute_path)}")
     print(f"🔍 [API] File exists: {os.path.exists(absolute_path)}")
     
     try:
