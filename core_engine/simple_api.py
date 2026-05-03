@@ -15,7 +15,7 @@ from core_logic import run_autonomous_repair, get_available_files
 
 load_dotenv()
 
-app = FastAPI(title="CORE SRE API - Final Handshake")
+app = FastAPI(title="CORE SRE API - Enterprise Handshake")
 
 # --- PATH RESOLUTION (FIXES RECURSIVE LOOP) ---
 # Use an absolute base to prevent 'complex_sandbox/complex_sandbox' nesting
@@ -27,7 +27,50 @@ else:
     SANDBOX_ROOT = os.path.join(ROOT_DIR, 'complex_sandbox', 'app')
 
 # --- CONFIGURATION ---
+# Define frontend_url at the very top to resolve NameError
 frontend_url = os.getenv("FRONTEND_URL", "https://core-sre-engine.vercel.app").rstrip("/")
+
+# --- AUTO-PROVISIONING ---
+# Ensure sandbox directory exists and create default files if missing
+os.makedirs(SANDBOX_ROOT, exist_ok=True)
+def create_default_files():
+    """Create default main.py and utils.py if they don't exist"""
+    main_file = os.path.join(SANDBOX_ROOT, "main.py")
+    utils_file = os.path.join(SANDBOX_ROOT, "utils.py")
+    
+    if not os.path.exists(main_file):
+        default_main = '''"""Default main.py - Auto-provisioned by SRE Agent"""
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class ProcessRequest(BaseModel):
+    values: list[int]
+
+@app.post('/process')
+async def process_payload(payload: ProcessRequest) -> dict[str, int]:
+    # BUG: No bounds checking - this will cause IndexError
+    first = payload.values[0]  # Vulnerable to empty list
+    total = sum(payload.values)
+    return {'first': first, 'total': total}
+'''
+        with open(main_file, 'w') as f:
+            f.write(default_main)
+        print(f"Created default main.py at {main_file}")
+    
+    if not os.path.exists(utils_file):
+        default_utils = '''"""Default utils.py - Auto-provisioned by SRE Agent"""
+
+def helper_function():
+    return "Helper function working"
+'''
+        with open(utils_file, 'w') as f:
+            f.write(default_utils)
+        print(f"Created default utils.py at {utils_file}")
+
+# Create default files on startup
+create_default_files()
 
 # --- CORS ---
 allowed_origins = [
@@ -44,6 +87,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add JSON response headers middleware
+@app.middleware("http")
+async def add_json_headers(request: Request, call_next):
+    response = await call_next(request)
+    if response.headers.get("content-type", "").startswith("application/json"):
+        response.headers["content-type"] = "application/json; charset=utf-8"
+    return response
 
 # --- MODELS ---
 class RepairResponse(BaseModel):
@@ -132,3 +183,11 @@ def health():
         'exists': os.path.exists(SANDBOX_ROOT),
         'cwd': os.getcwd()
     }
+
+@app.get("/")
+async def root():
+    return {"message": "CORE SRE API - Enterprise Handshake Complete", "status": "Healthy"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
