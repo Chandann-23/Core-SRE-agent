@@ -121,6 +121,20 @@ function App() {
     }
   };
 
+  const checkForSuccessInLogs = () => {
+    // Check if audit logs indicate success even if status endpoint hasn't updated
+    const successIndicators = [
+      'System restored to healthy state',
+      '✅ System restored',
+      'Agent successfully repaired',
+      'Fix applied, validating solution'
+    ];
+    
+    return auditLogs.some(log => 
+      successIndicators.some(indicator => log.includes(indicator))
+    );
+  };
+
   const showSuccessNotification = () => {
     setFinalMttrTime(mttrTime);
     setShowSuccessModal(true);
@@ -168,13 +182,16 @@ function App() {
       const res = await axios.post(`${API_BASE}/repair`);
       setHistory(Array.isArray(res.data.history) ? res.data.history : []);
       
-      // Step 6: Poll status and logs simultaneously
+      // Step 6: Poll status and logs simultaneously with smart success detection
       const pollInterval = setInterval(async () => {
         await fetchStatus();
         await fetchAuditLogs();
         
-        // Stop polling when system is healthy
-        if (systemStatus === 'Healthy') {
+        // Smart success detection: check logs first, then status
+        const logsIndicateSuccess = checkForSuccessInLogs();
+        const statusIndicatesSuccess = systemStatus === 'Healthy';
+        
+        if (logsIndicateSuccess || statusIndicatesSuccess) {
           clearInterval(pollInterval);
           stopAuditPolling();
           stopMttrTimer(); // Explicitly stop timer
@@ -183,18 +200,36 @@ function App() {
           
           // Show success notification
           showSuccessNotification();
+          
+          // Log which detection method worked
+          if (logsIndicateSuccess && !statusIndicatesSuccess) {
+            console.log('🎯 Success detected via audit logs (smart detection)');
+          } else if (statusIndicateSuccess) {
+            console.log('🎯 Success detected via status endpoint');
+          } else {
+            console.log('🎯 Success detected via both methods');
+          }
         }
       }, 1000);
       
-      // Timeout after 2 minutes
+      // Timeout after 3 minutes (180 seconds) - giving Render free tier breathing room
       setTimeout(() => {
         clearInterval(pollInterval);
         stopAuditPolling();
         stopMttrTimer();
         setIsTestActive(false);
         setIsRunningFullAudit(false);
-        alert("⚠️ Audit timeout. The repair process may still be running in the background.");
-      }, 120000);
+        
+        // Check if we actually succeeded but missed the signal
+        const successInLogs = checkForSuccessInLogs();
+        
+        if (successInLogs) {
+          console.log('🎯 Success detected via audit logs during timeout check');
+          showSuccessNotification();
+        } else {
+          alert("⚠️ Audit timeout after 3 minutes. The repair process may still be running in the background.");
+        }
+      }, 180000);
       
     } catch (err) {
       console.error("Full audit failed:", err);
