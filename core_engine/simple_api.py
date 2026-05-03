@@ -202,6 +202,14 @@ print(f"🔍 [CORS] Middleware configured with origins: {allowed_origins}")
 print(f"🔍 [CORS] All methods allowed: GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH")
 print(f"🔍 [CORS] All headers allowed: [*]")
 
+# Add JSON response headers middleware
+@app.middleware("http")
+async def add_json_headers(request: Request, call_next):
+    response = await call_next(request)
+    if response.headers.get("content-type", "").startswith("application/json"):
+        response.headers["content-type"] = "application/json; charset=utf-8"
+    return response
+
 # --- MODELS ---
 class InjectBugResponse(BaseModel):
     status: str
@@ -608,12 +616,18 @@ async def get_files() -> dict:
             {"name": "utils.py", "path": "complex_sandbox/app/utils.py", "type": "utils"}
         ]
     
-    return {
+    # Ensure proper JSON serialization
+    response_data = {
         "files": files,
         "current_file": "main.py",
         "timestamp": datetime.now().isoformat(),
-        "status": "success"
+        "status": "success",
+        "backend_dir": os.getcwd(),
+        "sandbox_exists": os.path.exists('complex_sandbox')
     }
+    
+    print(f"🔍 [API] Returning response with {len(files)} files")
+    return response_data
 
 @app.get("/get-file/{path:path}", response_model=dict)
 async def get_file_content(path: str) -> dict:
@@ -621,52 +635,61 @@ async def get_file_content(path: str) -> dict:
     print(f"🔍 [API] /get-file/{path} endpoint called")
     print(f"🔍 [API] Resolving path from BASE_DIR: {BASE_DIR}")
     
-    # Construct absolute path using dynamic pathing
+    # Try multiple path resolutions based on Render directory structure
+    possible_paths = []
+    
+    # Path 1: Direct from current working directory (core_engine)
     if path.startswith('complex_sandbox/'):
-        # Remove prefix and construct absolute path
         relative_path = path.replace('complex_sandbox/', '')
-        target_path = os.path.join(COMPLEX_SANDBOX_DIR, relative_path)
-        print(f"🔍 [API] Complex sandbox path detected: {target_path}")
+        possible_paths.append(os.path.join(os.getcwd(), 'complex_sandbox', relative_path))
+        possible_paths.append(os.path.join(BASE_DIR, 'complex_sandbox', relative_path))
     else:
-        # Direct path resolution
-        target_path = os.path.join(COMPLEX_SANDBOX_DIR, path)
-        print(f"🔍 [API] Direct path resolution: {target_path}")
+        possible_paths.append(os.path.join(os.getcwd(), path))
+        possible_paths.append(os.path.join(BASE_DIR, path))
     
-    absolute_path = os.path.abspath(target_path)
-    print(f"🔍 [API] API searching for file at: {os.path.abspath(absolute_path)}")
-    print(f"🔍 [API] File exists: {os.path.exists(absolute_path)}")
+    # Path 2: Look in parent directory if in core_engine subdirectory
+    parent_sandbox = os.path.join(os.path.dirname(os.getcwd()), 'complex_sandbox')
+    if path.startswith('complex_sandbox/'):
+        relative_path = path.replace('complex_sandbox/', '')
+        possible_paths.append(os.path.join(parent_sandbox, relative_path))
     
-    try:
+    # Path 3: Try the original complex_sandbox directory from configuration
+    possible_paths.append(os.path.join(COMPLEX_SANDBOX_DIR, path.replace('complex_sandbox/', '') if path.startswith('complex_sandbox/') else path))
+    
+    print(f"🔍 [API] Trying {len(possible_paths)} possible paths:")
+    for i, target_path in enumerate(possible_paths):
+        absolute_path = os.path.abspath(target_path)
+        print(f"🔍 [API] Path {i+1}: {absolute_path} (exists: {os.path.exists(absolute_path)})")
+        
         if os.path.exists(absolute_path):
-            with open(absolute_path, 'r') as f:
-                content = f.read()
-            
-            filename = os.path.basename(absolute_path)
-            file_type = "main" if filename == "main.py" else "utils" if filename == "utils.py" else "unknown"
-            
-            print(f"🔍 [API] Serving {filename} with {len(content)} characters")
-            return {
-                "filename": filename,
-                "content": content,
-                "type": file_type,
-                "timestamp": datetime.now().isoformat()
-            }
-        else:
-            print(f"❌ [API] File not found: {absolute_path}")
-            return {
-                "filename": path,
-                "content": f"# File '{path}' not found at {absolute_path}",
-                "type": "unknown",
-                "timestamp": datetime.now().isoformat()
-            }
-    except Exception as e:
-        print(f"❌ [API] Error reading file: {e}")
-        return {
-            "filename": path,
-            "content": f"# Error reading file '{path}': {str(e)}",
-            "type": "error",
-            "timestamp": datetime.now().isoformat()
-        }
+            try:
+                with open(absolute_path, 'r') as f:
+                    content = f.read()
+                
+                filename = os.path.basename(absolute_path)
+                file_type = "main" if filename == "main.py" else "utils" if filename == "utils.py" else "unknown"
+                
+                print(f"🔍 [API] SUCCESS: Serving {filename} with {len(content)} characters from path {i+1}")
+                return {
+                    "filename": filename,
+                    "content": content,
+                    "type": file_type,
+                    "timestamp": datetime.now().isoformat(),
+                    "resolved_path": absolute_path
+                }
+            except Exception as e:
+                print(f"❌ [API] Error reading file at path {i+1}: {e}")
+                continue
+    
+    # If no path worked, return error with all attempted paths
+    print(f"❌ [API] File not found in any of the {len(possible_paths)} paths")
+    return {
+        "filename": path,
+        "content": f"# File '{path}' not found\n\n# Attempted paths:\n" + "\n".join([f"# {i+1}. {os.path.abspath(p)}" for i, p in enumerate(possible_paths)]),
+        "type": "error",
+        "timestamp": datetime.now().isoformat(),
+        "attempted_paths": [os.path.abspath(p) for p in possible_paths]
+    }
 
 # Keep the old route for backward compatibility
 @app.get("/file/{filename}", response_model=dict)
