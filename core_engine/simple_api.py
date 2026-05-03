@@ -15,17 +15,6 @@ from core_logic import run_autonomous_repair, get_available_files
 
 load_dotenv()
 
-app = FastAPI(title="CORE SRE API - Enterprise Handshake")
-
-# --- AUDIT TRAIL ---
-audit_logs = []  # Global list to store timestamped strings
-
-def add_audit_log(message: str):
-    """Add a timestamped message to the audit trail"""
-    timestamped_message = f"[{datetime.now().strftime('%H:%M:%S.%f')[:-3]}] {message}"
-    audit_logs.append(timestamped_message)
-    print(f"AUDIT: {timestamped_message}")
-
 # --- PATH RESOLUTION (FIXES RECURSIVE LOOP) ---
 # Define absolute paths using os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -38,6 +27,25 @@ else:
 # --- CONFIGURATION ---
 # Define frontend_url at the very top to resolve NameError
 frontend_url = os.getenv("FRONTEND_URL", "https://core-sre-engine.vercel.app").rstrip("/")
+
+# --- CORS FIX - Set as first middleware ---
+app = FastAPI(title="CORE SRE API - Enterprise Handshake")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://core-sre-engine.vercel.app"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- AUDIT TRAIL ---
+audit_logs = []  # Global list to store timestamped strings
+
+def add_audit_log(message: str):
+    """Add a timestamped message to the audit trail"""
+    timestamped_message = f"[{datetime.now().strftime('%H:%M:%S.%f')[:-3]}] {message}"
+    audit_logs.append(timestamped_message)
+    print(f"AUDIT: {timestamped_message}")
 
 # --- AUTO-PROVISIONING ---
 # Ensure sandbox directory exists and create default files if missing

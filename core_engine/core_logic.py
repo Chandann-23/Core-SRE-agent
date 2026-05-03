@@ -5,33 +5,18 @@ import re
 import os
 import sys
 import time
-from typing import Literal, TypedDict
+from typing import Literal, Dict, Any
 from pathlib import Path
-
 from dotenv import load_dotenv
-# Optional imports for LLM components
-try:
-    from langchain_groq import ChatGroq
-    from langchain_core.messages import HumanMessage, SystemMessage
-    from pydantic import BaseModel, Field
-    from langgraph.graph import END, StateGraph
-    from langgraph.checkpoint.memory import MemorySaver
-except ImportError as e:
-    print(f"Failed to import LLM components: {e}")
-    sys.exit(1)
 
-# Initialize LLM with stable model and verify connection
-api_key = os.getenv("GROQ_API_KEY")
-if not api_key:
-    print("❌ GROQ_API_KEY not found in environment variables")
-    sys.exit(1)
+# Import LangGraph components
+from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.memory import MemorySaver
 
-# Model Lockdown - Hard-code llama-3.1-8b-instant as only option
-llm = ChatGroq(
-    model="llama-3.1-8b-instant",
-    api_key=api_key
-)
-print("✅ LLM initialized with llama-3.1-8b-instant (MODEL LOCKDOWN)")
+# Import Groq components
+from langchain_groq import ChatGroq
+from langchain_core.messages import HumanMessage, SystemMessage
+from pydantic import BaseModel, Field
 
 # Import core components
 from llms import get_llm
