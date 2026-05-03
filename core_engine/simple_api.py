@@ -29,9 +29,13 @@ TARGET_FILE = os.path.join(TMP_SANDBOX_DIR, "app/main.py")
 COMPLEX_UTILS_FILE = os.path.join(TMP_SANDBOX_DIR, "app/utils.py")
 
 # Fallback to local complex_sandbox if /tmp doesn't work
-LOCAL_SANDBOX_DIR = os.path.abspath("./complex_sandbox")
-LOCAL_TARGET_FILE = os.path.join(LOCAL_SANDBOX_DIR, "app/main.py")
-LOCAL_UTILS_FILE = os.path.join(LOCAL_SANDBOX_DIR, "app/utils.py")
+LOCAL_SANDBOX_DIR = os.path.abspath(os.path.join(os.getcwd(), 'complex_sandbox'))
+LOCAL_TARGET_FILE = os.path.abspath(os.path.join(os.getcwd(), 'complex_sandbox', 'app', 'main.py'))
+LOCAL_UTILS_FILE = os.path.abspath(os.path.join(os.getcwd(), 'complex_sandbox', 'app', 'utils.py'))
+
+print(f"🔍 [PATH] Local sandbox directory: {LOCAL_SANDBOX_DIR}")
+print(f"🔍 [PATH] Local target file: {LOCAL_TARGET_FILE}")
+print(f"🔍 [PATH] Local utils file: {LOCAL_UTILS_FILE}")
 
 # Ensure sandbox directories exist
 os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
@@ -160,11 +164,15 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
     allow_headers=["*"],
     expose_headers=["*"],
     max_age=600,  # Cache preflight requests for 10 minutes
 )
+
+print(f"🔍 [CORS] Middleware configured with origins: {allowed_origins}")
+print(f"🔍 [CORS] All methods allowed: GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH")
+print(f"🔍 [CORS] All headers allowed: [*]")
 
 # --- MODELS ---
 class InjectBugResponse(BaseModel):
@@ -626,6 +634,20 @@ async def clear_audit_logs_endpoint():
 async def sessions():
     """Simple placeholder for sessions endpoint"""
     return []
+
+# Add route debugging endpoint
+@app.get("/routes")
+async def list_routes():
+    """List all available routes for debugging"""
+    routes = []
+    for route in app.routes:
+        if hasattr(route, 'methods'):
+            routes.append({
+                "path": route.path,
+                "methods": list(route.methods),
+                "name": route.name
+            })
+    return {"routes": routes, "total": len(routes)}
 
 if __name__ == "__main__":
     import uvicorn
