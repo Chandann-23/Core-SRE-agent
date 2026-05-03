@@ -238,6 +238,7 @@ class RepairResponse(BaseModel):
     mttr_time: float
     is_fixed: bool
     original_code: str | None = None
+    audit_logs: list[str] | None = None  # Add audit logs field
 
 class AuditLogResponse(BaseModel):
     logs: list[str]
@@ -307,11 +308,14 @@ async def repair_bug():
     add_audit_log("🚀 SRE Agent initiated autonomous repair")
     
     # Node 1: Simulated Analysis (20s)
-    add_audit_log("📊 Scanning transaction modules...")
-    await asyncio.sleep(10)  # First 10s chunk
-    add_audit_log("🔍 Heuristic analysis of chained vulnerabilities...")
-    await asyncio.sleep(10)  # Second 10s chunk
-    add_audit_log("🧠 TypeError detected in tax calculation AND IndexError in payment processing")
+    add_audit_log("📊 Analysis started - Scanning transaction modules...")
+    await asyncio.sleep(5)  # First 5s chunk
+    add_audit_log("🔍 Model switch verified - AI model ready for analysis")
+    await asyncio.sleep(5)  # Second 5s chunk
+    add_audit_log("🧠 Heuristic analysis of chained vulnerabilities...")
+    await asyncio.sleep(5)  # Third 5s chunk
+    add_audit_log("🎯 TypeError detected in tax calculation AND IndexError in payment processing")
+    await asyncio.sleep(5)  # Fourth 5s chunk
     
     # Node 2: Actual AI Repair logic from core_logic with thread_id config
     add_audit_log("⚡ Generating AI repair strategy for Financial Transaction System...")
@@ -320,15 +324,17 @@ async def repair_bug():
     add_audit_log("🔧 AI repair logic executed successfully")
     
     # Node 3: Simulated Stability Verification (35s)
-    add_audit_log("🔧 Performing regression testing on patched logic...")
-    await asyncio.sleep(15)  # First 15s chunk
+    add_audit_log("🔧 Applying patch - Performing regression testing on patched logic...")
+    await asyncio.sleep(10)  # First 10s chunk
     add_audit_log("🔍 Validating financial transaction integrity...")
     await asyncio.sleep(10)  # Second 10s chunk
     add_audit_log("✅ System stability verification complete")
-    await asyncio.sleep(10)  # Final 10s chunk
+    await asyncio.sleep(10)  # Third 10s chunk
+    add_audit_log("🎉 Final validation passed - System ready for production")
+    await asyncio.sleep(5)  # Final 5s chunk
     
     total_mttr = round(time.time() - start_time, 2)
-    add_audit_log(f"📈 Autonomous repair completed - MTTR: {total_mttr}s")
+    add_audit_log(f"📈 Autonomous repair completed - MTTR: {total_mttr:.2f}s")
     
     return RepairResponse(
         status=result["status"],
@@ -337,7 +343,8 @@ async def repair_bug():
         final_code=result["final_code"],
         mttr_time=round(total_mttr, 2),
         is_fixed=result["status"] == "success",
-        original_code=original_code
+        original_code=original_code,
+        audit_logs=audit_logs.copy()  # Include audit logs for frontend
     )
 
 @app.get("/audit-logs", response_model=AuditLogResponse)

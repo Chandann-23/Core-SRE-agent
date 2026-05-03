@@ -26,13 +26,24 @@ try:
         model="llama-3.1-8b-instant",
         api_key=os.getenv("GROQ_API_KEY")
     )
+    print("✅ LLM initialized with llama-3.1-8b-instant")
 except Exception as e:
-    print(f"Failed to initialize LLM: {e}")
+    print(f"Failed to initialize LLM with llama-3.1-8b-instant: {e}")
     # Fallback to supported model
-    llm = ChatGroq(
-        model="llama-3.1-70b-specdec",
-        api_key=os.getenv("GROQ_API_KEY")
-    )
+    try:
+        llm = ChatGroq(
+            model="llama-3.3-70b-specdec",
+            api_key=os.getenv("GROQ_API_KEY")
+        )
+        print("✅ LLM initialized with llama-3.3-70b-specdec fallback")
+    except Exception as e2:
+        print(f"Failed to initialize fallback LLM: {e2}")
+        # Final fallback
+        llm = ChatGroq(
+            model="llama-3.1-70b-specdec",
+            api_key=os.getenv("GROQ_API_KEY")
+        )
+        print("✅ LLM initialized with llama-3.1-70b-specdec final fallback")
 
 # Import core components
 from llms import get_llm
