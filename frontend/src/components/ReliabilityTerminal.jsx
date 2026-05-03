@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Terminal, Clock, Activity, CheckCircle, XCircle } from 'lucide-react';
+import { Terminal, Clock, Activity, CheckCircle, XCircle, X } from 'lucide-react';
 
 const ReliabilityTerminal = ({ 
   isOpen, 
@@ -9,7 +9,8 @@ const ReliabilityTerminal = ({
   systemStatus,
   formatTime,
   showWaitingMessage,
-  onToggle 
+  onToggle,
+  onResetTimer 
 }) => {
   const logContainerRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(true);
@@ -74,7 +75,16 @@ const ReliabilityTerminal = ({
               {showWaitingMessage ? (
                 <div className="w-4 h-4 bg-yellow-400 rounded-full animate-pulse" />
               ) : (
-                getStatusIcon()
+                <>
+                  {getStatusIcon()}
+                  <button
+                    onClick={onResetTimer}
+                    className="ml-1 p-1 rounded hover:bg-slate-700 transition-colors"
+                    title="Reset timer"
+                  >
+                    <X className="w-3 h-3 text-slate-400 hover:text-red-400" />
+                  </button>
+                </>
               )}
             </div>
           )}

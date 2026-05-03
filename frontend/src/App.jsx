@@ -79,7 +79,29 @@ function App() {
   const fetchAuditLogs = async () => {
     try {
       const res = await axios.get(`${API_BASE}/audit-logs`);
-      setAuditLogs(res.data.logs || []);
+      const newLogs = res.data.logs || [];
+      
+      // AGGRESSIVE SUCCESS LISTENER - Log is ground truth!
+      if (newLogs.some(log => log.includes('System restored to healthy state'))) {
+        console.log('🎯 SUCCESS DETECTED IN LOGS - Force stopping everything!');
+        
+        // Force stop everything immediately
+        stopAuditPolling();
+        stopMttrTimer();
+        
+        // Force set states
+        setIsTestActive(false);
+        setIsRunningFullAudit(false);
+        setSystemStatus('Healthy');
+        setShowWaitingMessage(false);
+        
+        // Trigger success immediately
+        showSuccessNotification();
+        
+        return; // Don't update logs further
+      }
+      
+      setAuditLogs(newLogs);
     } catch (err) {
       console.error("Failed to fetch audit logs");
     }
@@ -152,6 +174,29 @@ function App() {
     
     // Show success notification
     showSuccessNotification();
+  };
+
+  const handleResetTimer = () => {
+    console.log('🔄 Manual timer reset triggered');
+    
+    // Stop everything
+    stopAuditPolling();
+    stopMttrTimer();
+    
+    // Reset all states
+    setIsTestActive(false);
+    setIsRunningFullAudit(false);
+    setSystemStatus('Healthy');
+    setShowWaitingMessage(false);
+    setShowSuccessModal(false);
+    
+    // Reset timer
+    setMttrTime(0);
+    setMttrStartTime(null);
+    setFinalMttrTime(0);
+    
+    // Clear logs for clean start
+    setAuditLogs([]);
   };
 
   const showSuccessNotification = () => {
@@ -713,6 +758,7 @@ function App() {
             formatTime={formatTime}
             showWaitingMessage={showWaitingMessage}
             onToggle={() => setIsTerminalOpen(!isTerminalOpen)}
+            onResetTimer={handleResetTimer}
           />
           
           <SuccessModal
