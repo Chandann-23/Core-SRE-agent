@@ -7,6 +7,7 @@ const ReliabilityTerminal = ({
   isTestActive, 
   mttrTime, 
   systemStatus,
+  formatTime,
   onToggle 
 }) => {
   const logContainerRef = useRef(null);
@@ -17,12 +18,6 @@ const ReliabilityTerminal = ({
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
     }
   }, [auditLogs, autoScroll]);
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
 
   const getStatusIcon = () => {
     if (!isTestActive) return null;

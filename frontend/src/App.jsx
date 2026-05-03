@@ -6,6 +6,7 @@ import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Activity, Bug, ChevronDown, ChevronRight, FileCode, Folder, FolderOpen, PanelLeftClose, PanelLeftOpen, Plus, Terminal, Wrench, Play } from "lucide-react";
 import logo from "./assets/logo.png";
 import ReliabilityTerminal from "./components/ReliabilityTerminal";
+import SuccessModal from "./components/SuccessModal";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const FALLBACK_CODE = `from fastapi import FastAPI
@@ -44,6 +45,8 @@ function App() {
   const [mttrTime, setMttrTime] = useState(0);
   const [systemStatus, setSystemStatus] = useState("Healthy");
   const [isRunningFullAudit, setIsRunningFullAudit] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [finalMttrTime, setFinalMttrTime] = useState(0);
   
   const auditPollRef = useRef(null);
   const mttrIntervalRef = useRef(null);
@@ -65,6 +68,13 @@ function App() {
     }
   };
 
+  const formatTime = (seconds) => {
+    if (!seconds || seconds === 0) return "00:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const fetchAuditLogs = async () => {
     try {
       const res = await axios.get(`${API_BASE}/audit-logs`);
@@ -84,19 +94,16 @@ function App() {
     auditPollRef.current = setInterval(fetchAuditLogs, 2000);
   };
 
-  const stopAuditPolling = () => {
-    if (auditPollRef.current) {
-      clearInterval(auditPollRef.current);
-      auditPollRef.current = null;
-    }
-  };
-
   const startMttrTimer = () => {
-    setMttrStartTime(Date.now());
+    // Only start timer if not already running
+    if (mttrIntervalRef.current) return;
+    
+    const now = Date.now();
+    setMttrStartTime(now);
     setMttrTime(0);
     
     mttrIntervalRef.current = setInterval(() => {
-      setMttrTime(Math.floor((Date.now() - mttrStartTime) / 1000));
+      setMttrTime(Math.floor((Date.now() - now) / 1000));
     }, 1000);
   };
 
@@ -105,6 +112,25 @@ function App() {
       clearInterval(mttrIntervalRef.current);
       mttrIntervalRef.current = null;
     }
+  };
+
+  const stopAuditPolling = () => {
+    if (auditPollRef.current) {
+      clearInterval(auditPollRef.current);
+      auditPollRef.current = null;
+    }
+  };
+
+  const showSuccessNotification = () => {
+    setFinalMttrTime(mttrTime);
+    setShowSuccessModal(true);
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    // Reset timer for next audit
+    setMttrTime(0);
+    setMttrStartTime(null);
   };
 
   const clearAuditLogs = async () => {
@@ -133,10 +159,10 @@ function App() {
       // Step 3: Automatically open the terminal
       setIsTerminalOpen(true);
       
-      // Step 4: Start monitoring
+      // Step 4: Start monitoring (start timer only now)
       setIsTestActive(true);
       startAuditPolling();
-      startMttrTimer();
+      startMttrTimer(); // Start timer exactly when bug is injected
       
       // Step 5: Call /repair
       const res = await axios.post(`${API_BASE}/repair`);
@@ -151,13 +177,12 @@ function App() {
         if (systemStatus === 'Healthy') {
           clearInterval(pollInterval);
           stopAuditPolling();
+          stopMttrTimer(); // Explicitly stop timer
           setIsTestActive(false);
           setIsRunningFullAudit(false);
           
-          // Show final report
-          setTimeout(() => {
-            alert(`✅ Reliability Audit Complete!\n\nMTTR: ${Math.floor(mttrTime)} seconds\nStatus: System Restored\n\nThe autonomous agent successfully detected and repaired the injected vulnerability.`);
-          }, 500);
+          // Show success notification
+          showSuccessNotification();
         }
       }, 1000);
       
@@ -165,6 +190,7 @@ function App() {
       setTimeout(() => {
         clearInterval(pollInterval);
         stopAuditPolling();
+        stopMttrTimer();
         setIsTestActive(false);
         setIsRunningFullAudit(false);
         alert("⚠️ Audit timeout. The repair process may still be running in the background.");
@@ -175,6 +201,7 @@ function App() {
       setIsRunningFullAudit(false);
       setIsTestActive(false);
       stopAuditPolling();
+      stopMttrTimer();
       alert("❌ Reliability audit failed. Please try again.");
     }
   };
@@ -190,23 +217,6 @@ function App() {
     } catch (err) {
       console.error("Failed to fetch sessions");
     }
-  };
-
-  const onSelectSession = (session) => {
-    setSelectedSessionId(session.id);
-    setOldCode(session.initial_code || "");
-    setCode(session.final_code || FALLBACK_CODE);
-    setShowDiff(true);
-    setHistory(
-      Array.isArray(session.history_logs) && session.history_logs.length > 0
-        ? session.history_logs
-        : [
-            `Loaded session #${session.id}`,
-            `Session timestamp: ${session.timestamp}`,
-            `Repair status: ${session.is_fixed ? "RESOLVED" : "FAILED"}`,
-          ],
-    );
-    setStatus(session.is_fixed ? "RESOLVED" : "FAILED");
   };
 
   useEffect(() => {
@@ -648,7 +658,16 @@ function App() {
             isTestActive={isTestActive}
             mttrTime={mttrTime}
             systemStatus={systemStatus}
+            formatTime={formatTime}
             onToggle={() => setIsTerminalOpen(!isTerminalOpen)}
+          />
+          
+          <SuccessModal
+            isOpen={showSuccessModal}
+            onClose={handleCloseSuccessModal}
+            mttrTime={finalMttrTime}
+            auditLogs={auditLogs}
+            vulnerabilityType="IndexError"
           />
         </main>
       </div>
