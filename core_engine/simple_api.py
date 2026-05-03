@@ -22,7 +22,9 @@ audit_logs = []  # Global list to store timestamped strings
 repair_task = None  # Background task reference
 
 # --- CONFIGURATION ---
-TARGET_FILE = "app/main.py"
+IS_DEMO = os.getenv('ENV') == 'production'
+TARGET_FILE = "../complex_sandbox/app/main.py"  # Updated to complex sandbox
+COMPLEX_UTILS_FILE = "../complex_sandbox/app/utils.py"  # Added utils file
 
 # --- CORS SETUP ---
 frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
@@ -60,11 +62,32 @@ class AuditLogResponse(BaseModel):
 
 # --- HELPER FUNCTIONS FOR DEMO MODE ---
 def read_sandbox_file():
+    """Read the complex sandbox main file"""
     try:
         with open(TARGET_FILE, "r") as f:
             return f.read()
     except FileNotFoundError:
-        return "# File not found"
+        return "# Complex sandbox file not found"
+
+def read_utils_file():
+    """Read the complex sandbox utils file"""
+    try:
+        with open(COMPLEX_UTILS_FILE, "r") as f:
+            return f.read()
+    except FileNotFoundError:
+        return "# Utils file not found"
+
+def get_available_files():
+    """Get list of available complex sandbox files"""
+    files = []
+    try:
+        if os.path.exists(TARGET_FILE):
+            files.append({"name": "main.py", "path": TARGET_FILE, "type": "main"})
+        if os.path.exists(COMPLEX_UTILS_FILE):
+            files.append({"name": "utils.py", "path": COMPLEX_UTILS_FILE, "type": "utils"})
+        return files
+    except Exception:
+        return [{"name": "main.py", "path": TARGET_FILE, "type": "main"}]
 
 def write_sandbox_file(content):
     os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
@@ -318,9 +341,41 @@ async def get_code() -> StatusResponse:
         status=status
     )
 
-@app.get("/status", response_model=StatusResponse)
-async def status() -> StatusResponse:
-    return await get_code()
+@app.get("/files", response_model=dict)
+async def get_files() -> dict:
+    """Get available complex sandbox files"""
+    return {
+        "files": get_available_files(),
+        "current_file": "main.py",
+        "timestamp": datetime.now().isoformat()
+    }
+
+@app.get("/file/{filename}", response_model=dict)
+async def get_file_content(filename: str) -> dict:
+    """Get content of a specific complex sandbox file"""
+    if filename == "main.py":
+        content = read_sandbox_file()
+        return {
+            "filename": filename,
+            "content": content,
+            "type": "main",
+            "timestamp": datetime.now().isoformat()
+        }
+    elif filename == "utils.py":
+        content = read_utils_file()
+        return {
+            "filename": filename,
+            "content": content,
+            "type": "utils",
+            "timestamp": datetime.now().isoformat()
+        }
+    else:
+        return {
+            "filename": filename,
+            "content": "# File not found",
+            "type": "unknown",
+            "timestamp": datetime.now().isoformat()
+        }
 
 @app.get("/audit-logs", response_model=AuditLogResponse)
 async def get_audit_logs() -> AuditLogResponse:

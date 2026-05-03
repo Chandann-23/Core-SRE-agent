@@ -47,25 +47,30 @@ function App() {
   const [isRunningFullAudit, setIsRunningFullAudit] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [finalMttrTime, setFinalMttrTime] = useState(0);
-  const [showWaitingMessage, setShowWaitingMessage] = useState(false);
+  const [availableFiles, setAvailableFiles] = useState([]);
+  const [currentFile, setCurrentFile] = useState("main.py");
   
   const auditPollRef = useRef(null);
   const mttrIntervalRef = useRef(null);
 
-  const fetchStatus = async () => {
+  const fetchComplexFiles = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/status`);
-      setCode(res.data.code_context);
-      setSystemStatus(res.data.status);
-      
-      // Auto-stop MTTR timer when system becomes healthy
-      if (res.data.status === 'Healthy' && isTestActive && mttrStartTime) {
-        stopMttrTimer();
-        setIsTestActive(false);
-      }
+      const res = await axios.get(`${API_BASE}/files`);
+      setAvailableFiles(res.data.files || []);
+      setCurrentFile(res.data.current_file || "main.py");
     } catch (err) {
-      setCode(FALLBACK_CODE);
-      console.error("Backend offline");
+      console.error("Failed to fetch complex files");
+    }
+  };
+
+  const fetchComplexFileContent = async (filename = "main.py") => {
+    try {
+      const res = await axios.get(`${API_BASE}/file/${filename}`);
+      setCode(res.data.content || "# File not found");
+      setCurrentFile(res.data.filename || filename);
+    } catch (err) {
+      console.error("Failed to fetch file content");
+      setCode("# Error loading file");
     }
   };
 
@@ -313,7 +318,12 @@ function App() {
     if (isRunningFullAudit) return;
     
     setIsRunningFullAudit(true);
+    
     try {
+      // Refresh hook: Ensure we're seeing the latest complex sandbox code
+      await fetchComplexFiles();
+      await fetchComplexFileContent("main.py");
+      
       // Step 1: Clear current logs
       await clearAuditLogs();
       
@@ -321,21 +331,19 @@ function App() {
       setStatus("VULNERABLE");
       setShowDiff(false);
       await axios.post(`${API_BASE}/inject-bug`);
-      await fetchStatus();
       
-      // Step 3: Automatically open the terminal
-      setIsTerminalOpen(true);
-      
-      // Step 4: Start monitoring (start timer only now)
+      // Step 3: Start MTTR timer
+      startMttrTimer();
       setIsTestActive(true);
+      setShowWaitingMessage(false);
+      
+      // Step 4: Call /repair
+      await axios.post(`${API_BASE}/repair`);
+      
+      // Step 5: Start audit polling
       startAuditPolling();
-      startMttrTimer(); // Start timer exactly when bug is injected
       
-      // Step 5: Call /repair
-      const res = await axios.post(`${API_BASE}/repair`);
-      setHistory(Array.isArray(res.data.history) ? res.data.history : []);
-      
-      // Step 6: BULLETPROOF polling logic - logs are truth!
+      // Step 6: Refresh code display after repair starts
       const pollInterval = setInterval(async () => {
         await fetchStatus();
         await fetchAuditLogs();
@@ -401,14 +409,24 @@ function App() {
         setSelectedSessionId(normalized[0].id);
       }
     } catch (err) {
-      console.error("Failed to fetch sessions");
+      console.error("Failed to fetch past sessions");
     }
   };
 
   useEffect(() => {
-    fetchStatus();
     fetchPastSessions();
+    fetchComplexFiles();
+    fetchComplexFileContent("main.py");
   }, []);
+
+  useEffect(() => {
+    // Start status polling
+    const statusInterval = setInterval(() => {
+      fetchComplexFileContent(currentFile);
+    }, 5000); // Poll every 5 seconds
+
+    return () => clearInterval(statusInterval);
+  }, [currentFile]);
 
   useEffect(() => {
     if (isTestActive) {
@@ -698,7 +716,7 @@ function App() {
                       leftTitle="Before"
                       rightTitle="After"
                       styles={{
-                        diffContainer: {
+                        titleText: {
                           background: "#050505",
                         },
                         contentText: {
@@ -706,35 +724,11 @@ function App() {
                           fontSize: "13px",
                           lineHeight: 1.6,
                         },
-                        line: {
-                          background: "#050505",
-                        },
-                        marker: {
-                          background: "#050505",
-                        },
-                        wordAdded: {
-                          background: "rgba(34, 197, 94, 0.1)",
-                        },
-                        lineNumber: {
-                          color: "#94a3b8",
-                        },
-                        wordRemoved: {
-                          background: "rgba(239, 68, 68, 0.1)",
-                        },
-                        gutter: {
-                          background: "#050505",
-                        },
-                        highlightedGutter: {
-                          background: "#050505",
-                        },
-                        highlightedLine: {
-                          background: "#050505",
-                        },
                       }}
                     />
                   </div>
                 ) : (
-                  <pre className="text-left whitespace-pre-wrap break-words">
+                  <pre className="code-highlighter-reset h-full overflow-auto bg-[#050505] p-4">
                     <SyntaxHighlighter
                       language="python"
                       style={atomDark}
@@ -744,20 +738,15 @@ function App() {
                       lineProps={{
                         style: {
                           whiteSpace: "pre-wrap",
-                          wordBreak: "break-all",
-                          textAlign: "left",
-                          lineHeight: "1.6",
+                          wordBreak: "break-word",
                         },
                       }}
                       customStyle={{
+                        background: "transparent",
+                        padding: 0,
                         margin: 0,
-                        minHeight: "100%",
-                        background: "#0a0a0a",
                         fontSize: "13px",
                         lineHeight: "1.6",
-                        padding: "20px",
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-all",
                         overflowX: "hidden",
                         textAlign: "left",
                         letterSpacing: "normal",
