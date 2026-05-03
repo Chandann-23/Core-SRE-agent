@@ -79,9 +79,46 @@ function App() {
   const [currentFile, setCurrentFile] = useState("main.py");
   const [AVAILABLE_FILES, setAvailableFiles] = useState([]);
   const [backendStatus, setBackendStatus] = useState('Checking backend...');
+  const healthCheckRef = useRef(null);
   
   const auditPollRef = useRef(null);
   const mttrIntervalRef = useRef(null);
+
+  const startPersistentHealthCheck = () => {
+    // Clear any existing health check interval
+    if (healthCheckRef.current) {
+      clearInterval(healthCheckRef.current);
+    }
+    
+    console.log('🔄 Starting persistent health check every 5 seconds...');
+    setBackendStatus('Checking backend...');
+    
+    // Poll every 5 seconds indefinitely until success
+    healthCheckRef.current = setInterval(async () => {
+      try {
+        const healthUrl = `${API_BASE}/health`;
+        console.log(`🔍 Pinging health endpoint: ${healthUrl}`);
+        
+        const res = await apiCall('get', '/health');
+        if (res.data && res.data.status === 'healthy') {
+          console.log('✅ Backend Verified: simple_api logic active');
+          setBackendStatus('Backend Verified: simple_api logic active');
+          
+          // Stop persistent polling on success
+          if (healthCheckRef.current) {
+            clearInterval(healthCheckRef.current);
+            healthCheckRef.current = null;
+          }
+          
+          // Fetch files once health check passes
+          await fetchComplexFiles();
+        }
+      } catch (err) {
+        console.log(`❌ Health check failed: ${err.message || 'Network error'}`);
+        setBackendStatus(`Backend unavailable (${new Date().toLocaleTimeString()})`);
+      }
+    }, 5000); // Every 5 seconds
+  };
 
   const checkBackendHealth = async (retryCount = 0) => {
     try {
@@ -105,8 +142,8 @@ function App() {
       if (retryCount < 2) {
         await checkBackendHealth(retryCount + 1);
       } else {
-        console.error('Backend health check failed after 3 attempts');
-        setBackendStatus('Backend unavailable - please refresh');
+        console.error('Backend health check failed after 3 attempts, starting persistent polling');
+        startPersistentHealthCheck();
       }
     }
   };
@@ -563,6 +600,10 @@ function App() {
       if (mttrIntervalRef.current) {
         clearInterval(mttrIntervalRef.current);
       }
+      if (healthCheckRef.current) {
+        clearInterval(healthCheckRef.current);
+        healthCheckRef.current = null;
+      }
     };
   }, []);
 
@@ -989,6 +1030,17 @@ function App() {
             vulnerabilityType="IndexError"
           />
         </main>
+      </div>
+      
+      {/* Debug UI - URL Indicator */}
+      <div className="fixed bottom-4 right-4 bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-400 max-w-xs">
+        <div className="flex items-center space-x-2">
+          <div className={`w-2 h-2 rounded-full ${backendStatus.includes('Verified') ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`}></div>
+          <div>
+            <div className="font-mono">{backendStatus}</div>
+            <div className="text-slate-500">Pinging: {API_BASE}/health</div>
+          </div>
+        </div>
       </div>
     </div>
   );
