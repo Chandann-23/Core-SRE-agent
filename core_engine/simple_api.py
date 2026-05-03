@@ -11,6 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import sys
+from core_logic import run_autonomous_repair, get_available_files, read_sandbox_file
 sys.path.append('../complex_sandbox/app')  # Add complex sandbox to path
 
 load_dotenv()

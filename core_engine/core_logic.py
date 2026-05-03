@@ -5,7 +5,7 @@ import re
 import os
 import sys
 import time
-from typing import Literal
+from typing import Literal, TypedDict
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -21,8 +21,8 @@ except ImportError as e:
     sys.exit(1)
 
 # Import core components
-from .llms import get_llm
-from .tools import toolbox
+from llms import get_llm
+from tools import toolbox
 
 # Load environment
 load_dotenv()
