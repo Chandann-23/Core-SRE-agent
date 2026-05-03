@@ -565,7 +565,7 @@ async def get_code() -> StatusResponse:
 @app.get("/files", response_model=dict)
 async def get_files() -> dict:
     """Get available complex sandbox files"""
-    print(f"🔍 [API] /files endpoint called")
+    print(f"🔍 [API] /files endpoint called - Working!")
     print(f"🔍 [API] Current working directory: {os.getcwd()}")
     
     files = get_available_files()
@@ -634,6 +634,38 @@ async def clear_audit_logs_endpoint():
 async def sessions():
     """Simple placeholder for sessions endpoint"""
     return []
+
+@app.get("/health")
+async def health_check():
+    """Comprehensive health check for debugging"""
+    print(f"🔍 [HEALTH] Backend health check called")
+    print(f"🔍 [HEALTH] Current working directory: {os.getcwd()}")
+    print(f"🔍 [HEALTH] Target file path: {os.path.abspath(TARGET_FILE)}")
+    print(f"🔍 [HEALTH] File exists: {os.path.exists(TARGET_FILE)}")
+    
+    # Check if files are accessible
+    main_exists = os.path.exists(TARGET_FILE)
+    utils_exists = os.path.exists(COMPLEX_UTILS_FILE)
+    
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "paths": {
+            "target_file": os.path.abspath(TARGET_FILE),
+            "utils_file": os.path.abspath(COMPLEX_UTILS_FILE),
+            "local_sandbox": os.path.abspath(os.path.join(os.getcwd(), 'complex_sandbox'))
+        },
+        "files": {
+            "main_exists": main_exists,
+            "utils_exists": utils_exists,
+            "available_count": len(get_available_files())
+        },
+        "routes": {
+            "/files": "registered",
+            "/get-file/{path:path}": "registered",
+            "/health": "registered"
+        }
+    }
 
 # Add route debugging endpoint
 @app.get("/routes")
