@@ -155,23 +155,6 @@ if not os.path.exists(COMPLEX_UTILS_FILE):
                 dst.write(content)
             print(f"📁 [INIT] Successfully copied utils.py from {abs_source} to {COMPLEX_UTILS_FILE}")
             utils_copied = True
-            break
-    
-    if not utils_copied:
-        print(f"⚠️ [INIT] Could not find utils.py, creating empty file")
-        with open(COMPLEX_UTILS_FILE, 'w') as dst:
-            dst.write('# Utils file - created automatically\ndef helper_function():\n    pass\n')
-        print(f"📁 [INIT] Created fallback utils.py at {COMPLEX_UTILS_FILE}")
-
-# Verify files exist and log paths
-print(f"🔍 Target file path: {os.path.abspath(TARGET_FILE)}")
-print(f"🔍 Utils file path: {os.path.abspath(COMPLEX_UTILS_FILE)}")
-print(f"🔍 Target file exists: {os.path.exists(TARGET_FILE)}")
-print(f"🔍 Utils file exists: {os.path.exists(COMPLEX_UTILS_FILE)}")
-
-# --- CORS SETUP ---
-frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
-# Support both local development and Vercel deployment
 allowed_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173", 
@@ -185,8 +168,8 @@ allowed_origins = [
     "*"  # Fallback for development
 ]
 
-print(f"🔍 CORS Frontend URL: {frontend_url}")
-print(f"🔍 CORS Allowed Origins: {allowed_origins}")
+print(f"🔍 [CORS] Frontend URL: {frontend_url}")
+print(f"🔍 [CORS] Allowed origins: {allowed_origins}")
 
 app.add_middleware(
     CORSMiddleware,
@@ -220,19 +203,24 @@ class InjectBugResponse(BaseModel):
 class RepairResponse(BaseModel):
     status: str
     iterations: int
-    is_fixed: bool
-    final_error_logs: str
+    history: list[str]
     final_code: str
-    history: list[str] = Field(default_factory=list)
+    mttr_time: float | None = None
+    final_error_logs: str
+    is_fixed: bool
 
 class StatusResponse(BaseModel):
     target_file: str
     code_context: str
     status: str # "Healthy" or "Error"
 
+class ProcessRequest(BaseModel):
+    values: list[int]
+
 class AuditLogResponse(BaseModel):
-    logs: list[str] = Field(default_factory=list)
+    logs: list[str]
     timestamp: str
+    status: str
 
 # --- HELPER FUNCTIONS FOR DEMO MODE ---
 def read_sandbox_file():
@@ -557,32 +545,43 @@ async def run_repair_background():
         raise e
 
 @app.post("/repair", response_model=RepairResponse)
-async def repair() -> RepairResponse:
-    global repair_task
+async def repair_bug() -> RepairResponse:
+    """Run the autonomous repair workflow using core_logic"""
+    print(" [API] /repair endpoint called - Starting autonomous repair")
     
-    # Check if repair is already running
-    if repair_task and not repair_task.done():
+    try:
+        # Get current error logs and target file
+        error_logs = "Test failure detected - initiating autonomous repair"
+        target_file = TARGET_FILE
+        
+        # Run the autonomous repair workflow
+        result = await run_autonomous_repair(target_file, error_logs)
+        
+        print(f" [API] Repair completed with status: {result['status']}")
+        
         return RepairResponse(
-            status="running",
-            iterations=0,
-            is_fixed=False,
-            final_error_logs="Repair already in progress",
-            final_code="",
-            history=["Repair task already running"],
+            status=result["status"],
+            iterations=result["iterations"],
+            history=result["history"],
+            final_code=result["final_code"],
+            mttr_time=result.get("mttr_time"),
+            final_error_logs=result["final_error_logs"],
+            is_fixed=result["status"] == "success"
         )
-    
-    # Start repair in background
-    repair_task = asyncio.create_task(run_repair_background())
-    
-    return RepairResponse(
-        status="started",
-        iterations=0,
-        is_fixed=False,
-        final_error_logs="Repair task started",
-        final_code="",
-        history=["Autonomous repair initiated"],
-    )
+        
+    except Exception as e:
+        print(f" [API] Repair endpoint failed: {e}")
+        return RepairResponse(
+            status="failed",
+            iterations=0,
+            history=[f"Repair failed: {str(e)}"],
+            final_code=read_sandbox_file(),
+            mttr_time=None,
+            final_error_logs=str(e),
+            is_fixed=False
+        )
 
+# --- API ENDPOINTS ---
 @app.get("/get-code", response_model=StatusResponse)
 async def get_code() -> StatusResponse:
     current_code = read_sandbox_file()

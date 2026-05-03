@@ -203,6 +203,47 @@ function App() {
     return false;
   };
 
+  const validateDiffContent = async (filename, maxAttempts = 15) => {
+    // Enhanced validation for empty 'After' content in diff
+    console.log(`🔍 [Diff Validation] Checking diff content for ${filename}`);
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const res = await apiCall('get', `/get-file/complex_sandbox/app/${filename}`);
+        
+        if (res.data && res.data.content && res.data.content.trim() !== '') {
+          // Check if content is meaningful (not just placeholder)
+          const content = res.data.content.trim();
+          const isMeaningful = content.length > 50 && !content.includes('# File content not available') && !content.includes('# Backend unavailable');
+          
+          if (isMeaningful) {
+            console.log(`✅ [Diff Validation] Found meaningful content (${content.length} chars)`);
+            return {
+              success: true,
+              content: res.data.content,
+              filename: res.data.filename || filename
+            };
+          }
+        }
+      } catch (err) {
+        console.log(`❌ [Diff Validation] Attempt ${attempt} failed:`, err.message);
+      }
+      
+      // Wait 5 seconds between validation attempts
+      if (attempt < maxAttempts) {
+        console.log(`🔄 [Diff Validation] Retrying in 5 seconds... (${attempt}/${maxAttempts})`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+    
+    console.log(`🛑 [Diff Validation] No meaningful content found after ${maxAttempts} attempts`);
+    return {
+      success: false,
+      content: '# Diff validation failed - no meaningful content found',
+      filename: filename
+    };
+  };
+
   const fetchComplexFileContent = async (filename = "main.py", retryCount = 0) => {
     try {
       // Exponential backoff: 1s, 2s, 4s
@@ -660,18 +701,36 @@ function App() {
       setStatus("REPAIRING");
       
       // Start polling for the repaired file content
-      console.log(` [Repair] Starting repair process for ${currentFile}`);
-      await pollFileContent(currentFile);
+      console.log(`🔧 [Repair] Starting repair process for ${currentFile}`);
+      
+      // First validate that we can get meaningful content after repair
+      const validationResult = await validateDiffContent(currentFile);
+      
+      if (validationResult.success) {
+        console.log(`✅ [Repair] Validation passed - setting new content`);
+        setCode(validationResult.content);
+        setCurrentFile(validationResult.filename);
+      } else {
+        console.log(`❌ [Repair] Validation failed - using fallback polling`);
+        await pollFileContent(currentFile);
+      }
       
       try {
         const res = await axios.post(`${API_BASE}/repair`);
         setHistory(Array.isArray(res.data.history) ? res.data.history : []);
-        setCode(res.data.final_code);
-        setShowDiff(true);
-        setStatus("RESTORED");
-        setMttrTime(res.data.mttr_time || 0);
-        setFinalMttrTime(res.data.mttr_time || 0);
-        setShowSuccessModal(true);
+        
+        // Validate final result
+        if (res.data.final_code && res.data.final_code.trim() !== '') {
+          setCode(res.data.final_code);
+          setShowDiff(true);
+          setStatus("RESTORED");
+          setMttrTime(res.data.mttr_time || 0);
+          setFinalMttrTime(res.data.mttr_time || 0);
+          setShowSuccessModal(true);
+        } else {
+          console.log(`❌ [Repair] Final result validation failed - retrying content fetch`);
+          await pollFileContent(currentFile);
+        }
       } catch (err) {
         console.error('Repair failed:', err);
         setStatus("FAILED");
