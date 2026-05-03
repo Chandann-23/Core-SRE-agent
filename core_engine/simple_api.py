@@ -26,14 +26,35 @@ IS_DEMO = os.getenv('ENV') == 'production'
 TARGET_FILE = "../complex_sandbox/app/main.py"  # Updated to complex sandbox
 COMPLEX_UTILS_FILE = "../complex_sandbox/app/utils.py"  # Added utils file
 
+# Verify files exist and log paths
+print(f"🔍 Target file path: {os.path.abspath(TARGET_FILE)}")
+print(f"🔍 Utils file path: {os.path.abspath(COMPLEX_UTILS_FILE)}")
+print(f"🔍 Target file exists: {os.path.exists(TARGET_FILE)}")
+print(f"🔍 Utils file exists: {os.path.exists(COMPLEX_UTILS_FILE)}")
+
 # --- CORS SETUP ---
 frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+# Support both local development and Vercel deployment
+allowed_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173", 
+    "https://localhost:5173",
+    "https://127.0.0.1:5173",
+    frontend_url,
+    "*"  # Fallback for development
+]
+
+print(f"🔍 CORS Frontend URL: {frontend_url}")
+print(f"🔍 CORS Allowed Origins: {allowed_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", frontend_url, "*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,  # Cache preflight requests for 10 minutes
 )
 
 # --- MODELS ---
@@ -89,10 +110,96 @@ def get_available_files():
     except Exception:
         return [{"name": "main.py", "path": TARGET_FILE, "type": "main"}]
 
-def write_sandbox_file(content):
-    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
-    with open(TARGET_FILE, "w") as f:
-        f.write(content)
+def inject_search_replace_bug(bug_type: str) -> str:
+    """Inject bug using search-replace approach with proper pathing"""
+    try:
+        # Use absolute path and ensure directory exists
+        abs_target_file = os.path.abspath(TARGET_FILE)
+        target_dir = os.path.dirname(abs_target_file)
+        
+        # Create directory if it doesn't exist
+        os.makedirs(target_dir, exist_ok=True)
+        
+        # Check if file exists, if not create a backup from app.py
+        if not os.path.exists(abs_target_file):
+            app_py_path = os.path.join(os.path.dirname(abs_target_file), 'app.py')
+            if os.path.exists(app_py_path):
+                with open(app_py_path, 'r') as src:
+                    content = src.read()
+                with open(abs_target_file, 'w') as dst:
+                    dst.write(content)
+                print(f"📝 Created main.py from app.py backup")
+            else:
+                return f"Target file not found: {abs_target_file}"
+        
+        # Read the current complex main.py file
+        with open(abs_target_file, 'r') as f:
+            current_content = f.read()
+        
+        modified_content = current_content
+        injection_applied = False
+        
+        if bug_type == "index_error":
+            # Find the product validation loop and inject IndexError
+            old_code = "for i, product in enumerate(products):\n            if not product.validate():\n                validation_errors.append(f\"Product {i+1} ({product.name}) validation failed\")"
+            new_code = "for i, product in enumerate(products):\n            # IndexError injection - access product without validation\n            product_name = product.name  # This will fail if product is None\n            if not product.validate():\n                validation_errors.append(f\"Product {i+1} ({product.name}) validation failed\")"
+            
+            if old_code in modified_content:
+                modified_content = modified_content.replace(old_code, new_code)
+                injection_applied = True
+                result_msg = "Injected IndexError vulnerability - product access without validation"
+        
+        elif bug_type == "type_error":
+            # Find the tax calculation and inject TypeError
+            old_code = "if product.category == \"electronics\":\n                    # Complex electronics tax logic\n                    if product.price > 1000:\n                        tax_rate = 0.12  # Luxury electronics tax\n                    total += product.price * (1 + tax_rate)"
+            new_code = "if product.category == \"electronics\":\n                    # TypeError injection - wrong type assumption\n                    if product.price > 1000:\n                        tax_rate = 0.12  # Luxury electronics tax\n                    # Type error: treating price as string\n                    total += str(product.price) * (1 + tax_rate)"
+            
+            if old_code in modified_content:
+                modified_content = modified_content.replace(old_code, new_code)
+                injection_applied = True
+                result_msg = "Injected TypeError vulnerability - string multiplication in tax calculation"
+        
+        elif bug_type == "key_error":
+            # Find the order parsing and inject KeyError
+            old_code = "product = Product(\n                product_id=item.get(\"id\"),\n                name=item.get(\"name\"),\n                price=item.get(\"price\", 0),\n                category=item.get(\"category\", \"unknown\")\n            )"
+            new_code = "product = Product(\n                product_id=item.get(\"id\"),\n                name=item.get(\"name\"),\n                price=item.get(\"price\", 0),\n                category=item.get(\"category\", \"unknown\")\n            )\n            # KeyError injection - accessing non-existent key\n            special_price = item[\"special_price\"]  # This key doesn't exist"
+            
+            if old_code in modified_content:
+                modified_content = modified_content.replace(old_code, new_code)
+                injection_applied = True
+                result_msg = "Injected KeyError vulnerability - accessing non-existent special_price key"
+        
+        elif bug_type == "complex_logic_error":
+            # Find external service check and inject logic error
+            old_code = "if random.random() < 0.3:\n            self.external_service_available = False\n            return False"
+            new_code = "if random.random() < 0.3:\n            self.external_service_available = False\n            return False\n        # Complex logic error - always fail service check\n        self.external_service_available = False\n        return False"
+            
+            if old_code in modified_content:
+                modified_content = modified_content.replace(old_code, new_code)
+                injection_applied = True
+                result_msg = "Injected complex logic error - external service always unavailable"
+        
+        if injection_applied:
+            # Write the modified content back with proper error handling
+            try:
+                with open(abs_target_file, 'w') as f:
+                    f.write(modified_content)
+                print(f"📝 Bug injection successful: {result_msg}")
+                return result_msg
+            except PermissionError:
+                # Try writing to /tmp directory if permission denied
+                tmp_file = os.path.join('/tmp', 'main.py')
+                with open(tmp_file, 'w') as f:
+                    f.write(modified_content)
+                print(f"📝 Bug injection written to /tmp/main.py due to permission error")
+                return f"Bug injection written to /tmp/main.py: {result_msg}"
+        else:
+            return f"Bug injection failed - target code pattern not found for {bug_type}"
+        
+    except Exception as e:
+        error_msg = f"Bug injection failed: {str(e)}"
+        print(f"❌ {error_msg}")
+        return error_msg
 
 # --- AUDIT TRAIL FUNCTIONS ---
 def add_audit_log(message: str):
@@ -119,94 +226,15 @@ async def inject_bug() -> InjectBugResponse:
     
     add_audit_log(f"Bug injection started - Type: {bug_type}")
     
-    # Complex bug injection scenarios
-    if bug_type == "index_error":
-        buggy_code = (
-            "from fastapi import FastAPI\n"
-            "from pydantic import BaseModel\n\n"
-            "app = FastAPI()\n\n"
-            "class ProcessRequest(BaseModel):\n"
-            "    values: list[int]\n\n"
-            "@app.post('/process')\n"
-            "async def process_payload(payload: ProcessRequest) -> dict[str, int]:\n"
-            "    # Potential IndexError if values is empty\n"
-            "    first = payload.values[0]\n"
-            "    total = sum(payload.values)\n"
-            "    return {'first': first, 'total': total}\n"
-        )
-        error_msg = "Injected IndexError vulnerability - array access without bounds check"
+    # Use search-replace approach instead of overwriting
+    injection_result = inject_search_replace_bug(bug_type)
     
-    elif bug_type == "type_error":
-        buggy_code = (
-            "from fastapi import FastAPI\n"
-            "from pydantic import BaseModel\n\n"
-            "app = FastAPI()\n\n"
-            "class ProcessRequest(BaseModel):\n"
-            "    values: list[int]\n\n"
-            "@app.post('/process')\n"
-            "async def process_payload(payload: ProcessRequest) -> dict[str, int]:\n"
-            "    # Type error - wrong type assumption\n"
-            "    total = payload.values[0] + payload.values[1]  # Will fail if single value\n"
-            "    return {'total': total}\n"
-        )
-        error_msg = "Injected TypeError vulnerability - incorrect type casting"
-    
-    elif bug_type == "key_error":
-        buggy_code = (
-            "from fastapi import FastAPI\n"
-            "from pydantic import BaseModel\n\n"
-            "app = FastAPI()\n\n"
-            "class ProcessRequest(BaseModel):\n"
-            "    values: dict[int, str]  # Dict instead of list\n\n"
-            "@app.post('/process')\n"
-            "async def process_payload(payload: ProcessRequest) -> dict[str, int]:\n"
-            "    # Key error - accessing non-existent key\n"
-            "    first = payload.values.get('non_existent_key', 0)\n"
-            "    total = sum(payload.values)\n"
-            "    return {'first': first, 'total': total}\n"
-        )
-        error_msg = "Injected KeyError vulnerability - missing key handling"
-    
-    elif bug_type == "complex_logic_error":
-        # Use complex sandbox for logic error
-        if 'TaxCalculator' in sys.modules and 'DataValidator' in sys.modules:
-            buggy_code = (
-                "from utils import TaxCalculator, DataValidator\n\n"
-                "# Complex logic that will fail validation\n\n"
-                "def process_complex_order():\n\n"
-                "    # This will trigger complex validation\n\n"
-                "    calculator = TaxCalculator()\n\n"
-                "    validator = DataValidator()\n\n"
-                "    validator.enable_strict_mode()\n\n"
-                "    # This will cause validation failures\n\n"
-                "    result = await process_order_endpoint({'products': []})\n\n"
-                "    return result\n"
-            )
-            error_msg = "Injected complex logic error - validation failures in business logic"
-        else:
-            # Fallback to simple error
-            buggy_code = (
-                "from fastapi import FastAPI\n"
-                "from pydantic import BaseModel\n\n"
-                "app = FastAPI()\n\n"
-                "class ProcessRequest(BaseModel):\n\n"
-                "    values: list[int]\n\n"
-                "@app.post('/process')\n"
-                "async def process_payload(payload: ProcessRequest) -> dict[str, int]:\n"
-                "    # Simple IndexError\n"
-                "    first = payload.values[0]\n"
-                "    total = sum(payload.values)\n"
-                "    return {'first': first, 'total': total}\n"
-            )
-            error_msg = "Injected IndexError vulnerability - array access without bounds check"
-    
-    write_sandbox_file(buggy_code)
-    add_audit_log(f"Bug injected - {error_msg}")
+    add_audit_log(f"Bug injected - {injection_result}")
     
     return InjectBugResponse(
         status="ok",
         target_file=TARGET_FILE,
-        message=error_msg,
+        message=injection_result,
         bug_type=bug_type
     )
 

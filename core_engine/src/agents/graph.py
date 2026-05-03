@@ -7,13 +7,68 @@ from typing import Literal
 from pathlib import Path
 
 from dotenv import load_dotenv
-from langchain_groq import ChatGroq
-from langchain_core.messages import HumanMessage, SystemMessage
-from langgraph.graph import END, StateGraph
+# Optional imports for LLM components
+try:
+    from langchain_groq import ChatGroq
+    from langchain_core.messages import HumanMessage, SystemMessage
+    from pydantic import BaseModel, Field
+    from langgraph.graph import END, StateGraph
+    LLM_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: LLM components not available: {e}")
+    print("System will run in demo mode without LLM functionality")
+    LLM_AVAILABLE = False
+    # Create dummy classes for demo mode
+    class ChatGroq:
+        def __init__(self, *args, **kwargs):
+            pass
+        def invoke(self, messages):
+            return "Demo mode: LLM not available"
+    class HumanMessage:
+        def __init__(self, content):
+            self.content = content
+    class SystemMessage:
+        def __init__(self, content):
+            self.content = content
+    class BaseModel:
+        pass
+    class Field:
+        def __init__(self, *args, **kwargs):
+            pass
+    class END:
+        pass
+    class StateGraph:
+        def __init__(self, *args, **kwargs):
+            pass
+        def add_node(self, *args, **kwargs):
+            pass
+        def add_edge(self, *args, **kwargs):
+            pass
+        def add_conditional_edges(self, *args, **kwargs):
+            pass
+        def set_entry_point(self, *args, **kwargs):
+            pass
+        def compile(self, *args, **kwargs):
+            return self
 
-# Corrected relative imports for the state
-from src.agents.state import AgentState
-from src.tools.docker_executor import DockerToolbox
+# Corrected imports for the state
+try:
+    from src.agents.state import AgentState
+    from src.tools.docker_executor import DockerToolbox
+except ImportError:
+    # Fallback for demo mode
+    class AgentState:
+        messages = []
+        code = ""
+        analysis = ""
+        hypothesis = ""
+        verification = ""
+        
+    class DockerToolbox:
+        def __init__(self):
+            pass
+        def execute_command(self, command):
+            return "Demo mode: Docker not available"
 
 # --- ENVIRONMENT SETUP ---
 # Look for .env in the root (SRE/) folder

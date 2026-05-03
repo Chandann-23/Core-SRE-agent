@@ -40,7 +40,7 @@ class OrderProcessor:
         self.external_service_available = True
         
     async def check_external_service(self) -> bool:
-        """Simulate external dependency check"""
+        """Check if external service is available"""
         # 30% chance of external service being down
         if random.random() < 0.3:
             self.external_service_available = False

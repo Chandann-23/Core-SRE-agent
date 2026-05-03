@@ -23,6 +23,34 @@ async def process_payload(payload: ProcessRequest) -> dict[str, int | None]:
     total = sum(payload.values)
     return {"first": first, "total": total}
 `;
+const axiosInstance = axios.create({
+  timeout: 60000, // 60 seconds timeout for Render cold start
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+const apiCall = async (method, url, data = null) => {
+  try {
+    const config = {
+      method,
+      url: `${API_BASE}${url}`,
+      timeout: 60000, // 60 seconds timeout
+    };
+    if (data) {
+      config.data = data;
+    }
+    const response = await axiosInstance(config);
+    return response;
+  } catch (error) {
+    if (error.code === 'ECONNABORTED') {
+      console.error('Request timeout - Render backend may be starting up');
+      throw new Error('Backend request timeout. Please try again in a moment.');
+    }
+    throw error;
+  }
+};
+
 const SECTION_HEADER_REGEX = /##\s*(ANALYSIS|HYPOTHESIS|CODE|VERIFICATION)\b/gi;
 
 function App() {
@@ -48,30 +76,36 @@ function App() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [finalMttrTime, setFinalMttrTime] = useState(0);
   const [showWaitingMessage, setShowWaitingMessage] = useState(false);
-  const [availableFiles, setAvailableFiles] = useState([]);
   const [currentFile, setCurrentFile] = useState("main.py");
+  const [AVAILABLE_FILES, setAvailableFiles] = useState([]);
   
   const auditPollRef = useRef(null);
   const mttrIntervalRef = useRef(null);
 
-  const fetchComplexFiles = async () => {
+  const fetchComplexFiles = async (retryCount = 0) => {
     try {
-      const res = await axios.get(`${API_BASE}/files`);
+      const res = await apiCall('get', '/files');
       if (res.data && res.data.files) {
         setAvailableFiles(res.data.files || []);
         setCurrentFile(res.data.current_file || "main.py");
       }
     } catch (err) {
       console.error("Failed to fetch complex files:", err);
-      // Set fallback values to prevent UI crash
-      setAvailableFiles([{"name": "main.py", "path": "../complex_sandbox/app/main.py", "type": "main"}]);
-      setCurrentFile("main.py");
+      // Auto-retry mechanism
+      if (retryCount < 3) {
+        console.log(`Retrying file fetch (${retryCount + 1}/3) in 5 seconds...`);
+        setTimeout(() => fetchComplexFiles(retryCount + 1), 5000);
+      } else {
+        // Set fallback values to prevent UI crash
+        setAvailableFiles([{"name": "main.py", "path": "../complex_sandbox/app/main.py", "type": "main"}]);
+        setCurrentFile("main.py");
+      }
     }
   };
 
-  const fetchComplexFileContent = async (filename = "main.py") => {
+  const fetchComplexFileContent = async (filename = "main.py", retryCount = 0) => {
     try {
-      const res = await axios.get(`${API_BASE}/file/${filename}`);
+      const res = await apiCall('get', `/file/${filename}`);
       if (res.data && res.data.content) {
         setCode(res.data.content);
         setCurrentFile(res.data.filename || filename);
@@ -80,9 +114,15 @@ function App() {
       }
     } catch (err) {
       console.error("Failed to fetch file content:", err);
-      // Set fallback content to prevent UI crash
-      setCode("# Error loading file content");
-      setCurrentFile(filename);
+      // Auto-retry mechanism
+      if (retryCount < 3) {
+        console.log(`Retrying file content fetch (${retryCount + 1}/3) in 5 seconds...`);
+        setTimeout(() => fetchComplexFileContent(filename, retryCount + 1), 5000);
+      } else {
+        // Set fallback content to prevent UI crash
+        setCode("# Error loading file content - Backend may be starting up. Please wait...");
+        setCurrentFile(filename);
+      }
     }
   };
 
@@ -290,26 +330,9 @@ function App() {
     
     // Clear logs for clean start
     setAuditLogs([]);
-  };
-
-  const showSuccessNotification = () => {
-    // Calculate accurate MTTR from logs
     const accurateMttr = calculateMttrFromLogs();
     setFinalMttrTime(accurateMttr);
     setShowSuccessModal(true);
-  };
-
-  const clearAuditLogs = async () => {
-    try {
-      await axios.delete(`${API_BASE}/audit-logs`);
-      setAuditLogs([]);
-    } catch (err) {
-      console.error("Failed to clear audit logs");
-    }
-  };
-
-  const handleCloseSuccessModal = () => {
-    console.log('🔄 NUCLEAR RESET: handleCloseSuccessModal called!');
     console.log('🔄 Current showSuccessModal state:', showSuccessModal);
     
     // Close the modal
@@ -334,6 +357,17 @@ function App() {
     console.log('🔄 All states reset successfully');
   };
 
+  const onSelectSession = (session) => {
+    setSelectedSessionId(session.id);
+    setCode(session.initial_code_snippet || FALLBACK_CODE);
+    setHistory(session.history || []);
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    setFinalMttrTime(0);
+  };
+
   const runFullReliabilityAudit = async () => {
     if (isRunningFullAudit) return;
     
@@ -345,7 +379,11 @@ function App() {
       await fetchComplexFileContent("main.py");
       
       // Step 1: Clear current logs
-      await clearAuditLogs();
+      try {
+        await axios.delete(`${API_BASE}/audit-logs`);
+      } catch (err) {
+        console.error('Failed to clear logs:', err);
+      }
       
       // Step 2: Call /inject-bug
       setStatus("VULNERABLE");
@@ -365,7 +403,7 @@ function App() {
       
       // Step 6: Refresh code display after repair starts
       const pollInterval = setInterval(async () => {
-        await fetchStatus();
+        await fetchComplexFileContent(currentFile);
         await fetchAuditLogs();
         
         // IMMEDIATE SUCCESS DETECTION - Check logs first (they're faster)
@@ -422,7 +460,7 @@ function App() {
 
   const fetchPastSessions = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/sessions`);
+      const res = await apiCall('get', '/sessions');
       const normalized = Array.isArray(res.data) ? res.data : [];
       setPastSessions(normalized);
       if (normalized.length > 0 && selectedSessionId === null) {
@@ -438,9 +476,8 @@ function App() {
       fetchPastSessions();
       fetchComplexFiles();
       fetchComplexFileContent("main.py");
-    } catch (err) {
-      console.error("Initialization error:", err);
-      // Set fallback values to prevent UI crash
+    } catch (error) {
+      console.error('Initialization error:', error);
       setCode(FALLBACK_CODE);
       setAvailableFiles([{"name": "main.py", "path": "../complex_sandbox/app/main.py", "type": "main"}]);
       setCurrentFile("main.py");
@@ -498,7 +535,7 @@ function App() {
       setStatus("VULNERABLE");
       setShowDiff(false);
       await axios.post(`${API_BASE}/inject-bug`);
-      fetchStatus();
+      fetchComplexFileContent(currentFile);
     } else {
       setOldCode(code || FALLBACK_CODE);
       setIsRepairing(true);
@@ -511,6 +548,7 @@ function App() {
         setStatus(res.data.is_fixed ? "RESOLVED" : "FAILED");
         await fetchPastSessions();
       } catch (err) {
+        console.error('Repair failed:', err);
         setStatus("ERROR");
       }
       setIsRepairing(false);
