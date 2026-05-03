@@ -8,6 +8,7 @@ const ReliabilityTerminal = ({
   mttrTime, 
   systemStatus,
   formatTime,
+  showWaitingMessage,
   onToggle 
 }) => {
   const logContainerRef = useRef(null);
@@ -27,6 +28,7 @@ const ReliabilityTerminal = ({
   };
 
   const getStatusColor = () => {
+    if (showWaitingMessage) return 'text-yellow-400 border-yellow-400/30';
     if (systemStatus === 'Healthy') return 'text-emerald-400 border-emerald-400/30';
     if (systemStatus === 'Error') return 'text-rose-400 border-rose-400/30';
     return 'text-blue-400 border-blue-400/30';
@@ -67,9 +69,13 @@ const ReliabilityTerminal = ({
             <div className={`flex items-center gap-2 px-3 py-1.5 border rounded-md ${getStatusColor()}`}>
               <Clock className="w-4 h-4" />
               <span className="font-mono text-sm font-bold">
-                MTTR: {formatTime(mttrTime)}
+                {showWaitingMessage ? 'Still waiting for cloud propagation...' : `MTTR: ${formatTime(mttrTime)}`}
               </span>
-              {getStatusIcon()}
+              {showWaitingMessage ? (
+                <div className="w-4 h-4 bg-yellow-400 rounded-full animate-pulse" />
+              ) : (
+                getStatusIcon()
+              )}
             </div>
           )}
         </div>

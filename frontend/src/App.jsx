@@ -47,6 +47,7 @@ function App() {
   const [isRunningFullAudit, setIsRunningFullAudit] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [finalMttrTime, setFinalMttrTime] = useState(0);
+  const [showWaitingMessage, setShowWaitingMessage] = useState(false);
   
   const auditPollRef = useRef(null);
   const mttrIntervalRef = useRef(null);
@@ -122,7 +123,7 @@ function App() {
   };
 
   const checkForSuccessInLogs = () => {
-    // Check if audit logs indicate success even if status endpoint hasn't updated
+    // Check if audit logs indicate success - BULLETPROOF detection
     const successIndicators = [
       'System restored to healthy state',
       '✅ System restored',
@@ -133,6 +134,24 @@ function App() {
     return auditLogs.some(log => 
       successIndicators.some(indicator => log.includes(indicator))
     );
+  };
+
+  const handleSuccessDetected = () => {
+    // IMMEDIATE success handling - stop everything and show success
+    console.log('🎯 SUCCESS DETECTED IN LOGS - Immediate response!');
+    
+    // Stop all monitoring
+    stopAuditPolling();
+    stopMttrTimer();
+    
+    // Update states immediately
+    setIsTestActive(false);
+    setIsRunningFullAudit(false);
+    setSystemStatus('Healthy');
+    setShowWaitingMessage(false);
+    
+    // Show success notification
+    showSuccessNotification();
   };
 
   const showSuccessNotification = () => {
@@ -182,52 +201,50 @@ function App() {
       const res = await axios.post(`${API_BASE}/repair`);
       setHistory(Array.isArray(res.data.history) ? res.data.history : []);
       
-      // Step 6: Poll status and logs simultaneously with smart success detection
+      // Step 6: BULLETPROOF polling logic - logs are truth!
       const pollInterval = setInterval(async () => {
         await fetchStatus();
         await fetchAuditLogs();
         
-        // Smart success detection: check logs first, then status
+        // IMMEDIATE SUCCESS DETECTION - Check logs first (they're faster)
         const logsIndicateSuccess = checkForSuccessInLogs();
-        const statusIndicatesSuccess = systemStatus === 'Healthy';
         
-        if (logsIndicateSuccess || statusIndicatesSuccess) {
+        if (logsIndicateSuccess) {
           clearInterval(pollInterval);
-          stopAuditPolling();
-          stopMttrTimer(); // Explicitly stop timer
-          setIsTestActive(false);
-          setIsRunningFullAudit(false);
-          
-          // Show success notification
-          showSuccessNotification();
-          
-          // Log which detection method worked
-          if (logsIndicateSuccess && !statusIndicatesSuccess) {
-            console.log('🎯 Success detected via audit logs (smart detection)');
-          } else if (statusIndicateSuccess) {
-            console.log('🎯 Success detected via status endpoint');
-          } else {
-            console.log('🎯 Success detected via both methods');
-          }
+          handleSuccessDetected();
+          console.log('🎯 Success detected via audit logs (immediate response)');
+          return;
+        }
+        
+        // Fallback to status endpoint
+        if (systemStatus === 'Healthy') {
+          clearInterval(pollInterval);
+          handleSuccessDetected();
+          console.log('🎯 Success detected via status endpoint');
+          return;
         }
       }, 1000);
       
-      // Timeout after 3 minutes (180 seconds) - giving Render free tier breathing room
+      // Timeout after 3 minutes (180 seconds) - subtle warning instead of interruptive alert
       setTimeout(() => {
-        clearInterval(pollInterval);
-        stopAuditPolling();
-        stopMttrTimer();
-        setIsTestActive(false);
-        setIsRunningFullAudit(false);
-        
-        // Check if we actually succeeded but missed the signal
-        const successInLogs = checkForSuccessInLogs();
-        
-        if (successInLogs) {
-          console.log('🎯 Success detected via audit logs during timeout check');
-          showSuccessNotification();
-        } else {
-          alert("⚠️ Audit timeout after 3 minutes. The repair process may still be running in the background.");
+        // Only show warning if we haven't already detected success
+        if (isTestActive) {
+          clearInterval(pollInterval);
+          stopAuditPolling();
+          stopMttrTimer();
+          setIsTestActive(false);
+          setIsRunningFullAudit(false);
+          setShowWaitingMessage(true);
+          
+          // Check one last time for success in logs
+          const successInLogs = checkForSuccessInLogs();
+          
+          if (successInLogs) {
+            console.log('🎯 Success detected via audit logs during timeout check');
+            handleSuccessDetected();
+          } else {
+            console.log('⏱️ 3 minutes reached - showing subtle waiting message');
+          }
         }
       }, 180000);
       
@@ -237,7 +254,7 @@ function App() {
       setIsTestActive(false);
       stopAuditPolling();
       stopMttrTimer();
-      alert("❌ Reliability audit failed. Please try again.");
+      // No alert - just reset state for demo continuity
     }
   };
 
@@ -694,6 +711,7 @@ function App() {
             mttrTime={mttrTime}
             systemStatus={systemStatus}
             formatTime={formatTime}
+            showWaitingMessage={showWaitingMessage}
             onToggle={() => setIsTerminalOpen(!isTerminalOpen)}
           />
           
