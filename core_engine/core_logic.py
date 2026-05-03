@@ -292,20 +292,19 @@ llm = get_llm()
 def get_available_files() -> list[dict]:
     """Get list of available files in the complex sandbox."""
     try:
-        from .simple_api import COMPLEX_SANDBOX_DIR
-        files = []
+        # Use absolute paths for file resolution
+        sandbox_dir = "/tmp/complex_sandbox/app"
+        if not os.path.exists(sandbox_dir):
+            sandbox_dir = os.path.join(os.getcwd(), "complex_sandbox", "app")
         
-        # Check for main files
-        main_files = ["main.py", "app.py", "utils.py"]
-        for filename in main_files:
-            file_path = os.path.join(COMPLEX_SANDBOX_DIR, "app", filename)
-            if os.path.exists(file_path):
-                file_type = "main" if filename == "main.py" else "utils" if filename == "utils.py" else "unknown"
-                files.append({
-                    "name": filename,
-                    "path": f"complex_sandbox/app/{filename}",
-                    "type": file_type
-                })
+        files = []
+        main_file = os.path.join(sandbox_dir, "main.py")
+        utils_file = os.path.join(sandbox_dir, "utils.py")
+        
+        if os.path.exists(main_file):
+            files.append({"name": "main.py", "path": "complex_sandbox/app/main.py", "type": "main"})
+        if os.path.exists(utils_file):
+            files.append({"name": "utils.py", "path": "complex_sandbox/app/utils.py", "type": "utils"})
         
         return files
     except Exception as e:
@@ -315,9 +314,18 @@ def get_available_files() -> list[dict]:
 def read_sandbox_file() -> str:
     """Read the current content of the target sandbox file."""
     try:
-        from .simple_api import TARGET_FILE
-        with open(TARGET_FILE, 'r') as f:
-            return f.read()
+        # Try multiple possible locations
+        possible_paths = [
+            "/tmp/complex_sandbox/app/main.py",
+            os.path.join(os.getcwd(), "complex_sandbox", "app", "main.py")
+        ]
+        
+        for path in possible_paths:
+            if os.path.exists(path):
+                with open(path, 'r') as f:
+                    return f.read()
+        
+        return "# File not found"
     except Exception as e:
         print(f"Error reading sandbox file: {e}")
         return ""
