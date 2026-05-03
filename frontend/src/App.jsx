@@ -71,8 +71,24 @@ function App() {
 
   const formatTime = (seconds) => {
     if (!seconds || seconds === 0) return "00:00";
+    
+    // Handle sub-second times
+    if (seconds < 1) {
+      const ms = Math.round(seconds * 1000);
+      return `< 1s (${ms}ms)`;
+    }
+    
+    // Handle times under 10 seconds with millisecond precision
+    if (seconds < 10) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      const ms = Math.round((seconds % 1) * 100);
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+    }
+    
+    // Standard MM:SS format for longer times
     const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = Math.floor(seconds % 60);
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
@@ -123,13 +139,18 @@ function App() {
     // Only start timer if not already running
     if (mttrIntervalRef.current) return;
     
-    const now = Date.now();
-    setMttrStartTime(now);
-    setMttrTime(0);
-    
-    mttrIntervalRef.current = setInterval(() => {
-      setMttrTime(Math.floor((Date.now() - now) / 1000));
-    }, 1000);
+    // Add 500ms delay to prevent identical start/stop times
+    setTimeout(() => {
+      const now = Date.now();
+      setMttrStartTime(now);
+      setMttrTime(0);
+      
+      mttrIntervalRef.current = setInterval(() => {
+        setMttrTime(Math.floor((Date.now() - now) / 1000));
+      }, 1000);
+      
+      console.log('⏱️ MTTR timer started with 500ms delay');
+    }, 500);
   };
 
   const stopMttrTimer = () => {
@@ -183,37 +204,44 @@ function App() {
   };
 
   const calculateMttrFromLogs = () => {
-    // Calculate MTTR using log timestamps for accuracy
-    if (auditLogs.length < 2) return 0;
+    // Calculate MTTR using log timestamps with millisecond precision
+    if (auditLogs.length < 2) return 0.5; // Minimum 500ms
     
-    // Find first log (usually 'Audit trail cleared')
-    const firstLog = auditLogs[0];
-    // Find last log containing success message
+    // Find bug injection log (start time)
+    const bugInjectionLog = auditLogs.find(log => 
+      log.includes('Bug injection started') || 
+      log.includes('Bug injected')
+    );
+    
+    // Find success log (end time)
     const successLog = auditLogs.find(log => 
       log.includes('System restored to healthy state') ||
       log.includes('✅ System restored')
     );
     
-    if (!firstLog || !successLog) return 0;
+    if (!bugInjectionLog || !successLog) return 0.5; // Minimum 500ms
     
     // Extract timestamps from log entries
-    // Format: [HH:MM:SS] message
-    const firstTimestamp = firstLog.match(/\[(\d{2}:\d{2}:\d{2})\]/)?.[1];
-    const successTimestamp = successLog.match(/\[(\d{2}:\d{2}:\d{2})\]/)?.[1];
+    // Format: [HH:MM:SS.mmm] message
+    const startTimestamp = bugInjectionLog.match(/\[(\d{2}:\d{2}:\d{2}\.\d{3})\]/)?.[1];
+    const endTimestamp = successLog.match(/\[(\d{2}:\d{2}:\d{2}\.\d{3})\]/)?.[1];
     
-    if (!firstTimestamp || !successTimestamp) return 0;
+    if (!startTimestamp || !endTimestamp) return 0.5; // Minimum 500ms
     
-    // Convert to seconds and calculate difference
-    const [firstH, firstM, firstS] = firstTimestamp.split(':').map(Number);
-    const [successH, successM, successS] = successTimestamp.split(':').map(Number);
+    // Convert to milliseconds and calculate difference
+    const [startH, startM, startSAndMs] = startTimestamp.split(':');
+    const [endH, endM, endSAndMs] = endTimestamp.split(':');
     
-    const firstTotalSeconds = firstH * 3600 + firstM * 60 + firstS;
-    const successTotalSeconds = successH * 3600 + successM * 60 + successS;
+    const [startS, startMs] = startSAndMs.split('.').map(Number);
+    const [endS, endMs] = endSAndMs.split('.').map(Number);
     
-    const mttrSeconds = successTotalSeconds - firstTotalSeconds;
+    const startTotalMs = (parseInt(startH) * 3600 + parseInt(startM) * 60 + startS) * 1000 + startMs;
+    const endTotalMs = (parseInt(endH) * 3600 + parseInt(endM) * 60 + endS) * 1000 + endMs;
     
-    // Apply minimum floor for realism (LLM processing time)
-    return Math.max(mttrSeconds, 45); // Minimum 45 seconds
+    const mttrMs = endTotalMs - startTotalMs;
+    
+    // Apply minimum floor for network/LLM realism
+    return Math.max(mttrMs, 500) / 1000; // Convert to seconds, minimum 500ms
   };
 
   const handleResetTimer = () => {

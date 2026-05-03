@@ -67,8 +67,8 @@ def write_sandbox_file(content):
 
 # --- AUDIT TRAIL FUNCTIONS ---
 def add_audit_log(message: str):
-    """Add a timestamped message to the audit trail"""
-    timestamped_message = f"[{datetime.now().strftime('%H:%M:%S')}] {message}"
+    """Add a timestamped message to the audit trail with millisecond precision"""
+    timestamped_message = f"[{datetime.now().strftime('%H:%M:%S.%f')[:-3]}] {message}"
     audit_logs.append(timestamped_message)
     print(f"AUDIT: {timestamped_message}")
 
