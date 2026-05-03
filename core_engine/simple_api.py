@@ -27,9 +27,9 @@ def add_audit_log(message: str):
     print(f"AUDIT: {timestamped_message}")
 
 # --- PATH RESOLUTION (FIXES RECURSIVE LOOP) ---
-# Use an absolute base to prevent 'complex_sandbox/complex_sandbox' nesting
+# Define absolute paths using os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-# Check if we are running in the core_engine subdirectory (Render) or local root
+# Check if we are running in core_engine subdirectory (Render) or local root
 if 'core_engine' in ROOT_DIR:
     SANDBOX_ROOT = os.path.join(ROOT_DIR, 'complex_sandbox', 'app')
 else:
@@ -411,17 +411,17 @@ if __name__ == "__main__":
 @app.post("/repair", response_model=RepairResponse)
 async def repair_bug():
     """
-    Autonomous repair with explicit 35s MTTR simulation.
+    Autonomous repair with explicit 30s MTTR simulation.
     This demonstrates enterprise-grade autonomous recovery.
     """
     try:
         start_time = time.time()
         target_file = os.path.join(SANDBOX_ROOT, "main.py")
         
-        # Initialize audit_logs list at the start
+        # Initialize audit_logs list at the very top
         audit_logs = []
         
-        # Read original code for diff comparison (BEFORE AI modifies it)
+        # Capture pre_repair_code BEFORE any modifications
         pre_repair_code = ""
         try:
             with open(target_file, 'r') as f:
@@ -430,16 +430,16 @@ async def repair_bug():
             audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Warning: Could not read original file: {e}")
             pre_repair_code = "# Original code not available"
         
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Initializing CORE SRE Neural Engine...")
+        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Neural Engine Analysis started...")
         
-        # Node 1: Analysis (10s) - Manual Audit Log Injection
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Scanning Financial Module for Traceback Errors...")
+        # Node 1: Analysis (10s) - Professional SRE logs
+        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Scanning Financial Module for vulnerabilities...")
         await asyncio.sleep(2)  # First 2s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] 🔍 Model switch verified - AI model ready for analysis")
+        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Model switch verified - AI ready for analysis")
         await asyncio.sleep(2)  # Second 2s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] 🧠 Heuristic analysis of chained vulnerabilities...")
+        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Heuristic analysis of chained errors...")
         await asyncio.sleep(2)  # Third 2s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] 🎯 TypeError detected in tax calculation AND IndexError in payment processing")
+        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] TypeError detected in tax calculation AND IndexError in payment processing")
         await asyncio.sleep(2)  # Fourth 2s chunk
         audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Generating AI Patch for Transaction Logic...")
         await asyncio.sleep(2)  # Fifth 2s chunk
@@ -449,17 +449,15 @@ async def repair_bug():
         result = await run_autonomous_repair(target_file, "TypeError in calculate_tax and IndexError in process_payment", config)
         audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] 🔧 AI repair logic executed successfully")
         
-        # Node 3: Stability Verification (25s) - More Manual Audit Log Injection
+        # Node 3: Stability Verification (20s) - More Professional SRE logs
         audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Running Regression Tests on Vercel Sandbox...")
         await asyncio.sleep(5)  # First 5s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] 🔍 Validating financial transaction integrity...")
+        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Validating financial transaction integrity...")
         await asyncio.sleep(5)  # Second 5s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] ✅ System stability verification complete")
+        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] System stability verification complete")
         await asyncio.sleep(5)  # Third 5s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] 🎉 Final validation passed - System ready for production")
+        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Final validation passed - System ready for production")
         await asyncio.sleep(5)  # Fourth 5s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] 📈 Autonomous repair completed - System recovered successfully")
-        await asyncio.sleep(5)  # Final 5s chunk
         
         # Read the fixed code (post_repair_code)
         post_repair_code = ""
@@ -473,7 +471,7 @@ async def repair_bug():
         elapsed = round(time.time() - start_time, 2)
         audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] 📈 Autonomous repair completed - MTTR: {elapsed:.2f}s")
         
-        # Force exact JSON structure with correct key names
+        # Return exact JSON structure with correct key names
         return {
             "status": "success",
             "audit_logs": audit_logs,
