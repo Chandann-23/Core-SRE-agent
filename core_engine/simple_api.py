@@ -33,23 +33,97 @@ os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
 os.makedirs(os.path.dirname(COMPLEX_UTILS_FILE), exist_ok=True)
 
 # Copy files from local complex_sandbox to /tmp if they don't exist
+print(f"🔍 [INIT] Checking if files need to be copied to /tmp/complex_sandbox...")
+print(f"🔍 [INIT] Current working directory: {os.getcwd()}")
+
 if not os.path.exists(TARGET_FILE):
-    local_main = "../complex_sandbox/app/main.py"
-    if os.path.exists(local_main):
-        with open(local_main, 'r') as src:
-            content = src.read()
+    # Try multiple possible source paths
+    possible_paths = [
+        "../complex_sandbox/app/main.py",
+        "./complex_sandbox/app/main.py",
+        "complex_sandbox/app/main.py",
+        "/app/complex_sandbox/app/main.py"  # Render deployment path
+    ]
+    
+    file_copied = False
+    for source_path in possible_paths:
+        abs_source = os.path.abspath(source_path)
+        print(f"🔍 [INIT] Trying source path: {abs_source}")
+        print(f"🔍 [INIT] Source exists: {os.path.exists(abs_source)}")
+        
+        if os.path.exists(abs_source):
+            with open(abs_source, 'r') as src:
+                content = src.read()
+            with open(TARGET_FILE, 'w') as dst:
+                dst.write(content)
+            print(f"📁 [INIT] Successfully copied main.py from {abs_source} to {TARGET_FILE}")
+            file_copied = True
+            break
+    
+    if not file_copied:
+        print(f"❌ [INIT] Could not find main.py in any source location!")
+        # Create a fallback file
+        fallback_content = '''"""Complex Multi-Step Processing System"""
+import asyncio
+import time
+import random
+from datetime import datetime
+from typing import Dict, List, Optional
+
+class Product:
+    """Represents a product in our order processing system"""
+    def __init__(self, product_id: str, name: str, price: float, category: str):
+        self.product_id = product_id
+        self.name = name
+        self.price = price
+        self.category = category
+        self.is_valid = True
+    
+    def validate(self) -> bool:
+        """Complex validation logic that can fail"""
+        if self.price < 0:
+            return False
+        if not self.name or len(self.name) < 2:
+            return False
+        if self.category not in ["electronics", "books", "clothing", "home"]:
+            return False
+        return True
+
+# Fallback file created automatically
+print("Complex sandbox system initialized")
+'''
         with open(TARGET_FILE, 'w') as dst:
-            dst.write(content)
-        print(f"📁 Copied main.py to {TARGET_FILE}")
+            dst.write(fallback_content)
+        print(f"📁 [INIT] Created fallback main.py at {TARGET_FILE}")
 
 if not os.path.exists(COMPLEX_UTILS_FILE):
-    local_utils = "../complex_sandbox/app/utils.py"
-    if os.path.exists(local_utils):
-        with open(local_utils, 'r') as src:
-            content = src.read()
+    # Try multiple possible source paths for utils.py
+    possible_utils_paths = [
+        "../complex_sandbox/app/utils.py",
+        "./complex_sandbox/app/utils.py",
+        "complex_sandbox/app/utils.py",
+        "/app/complex_sandbox/app/utils.py"
+    ]
+    
+    utils_copied = False
+    for source_path in possible_utils_paths:
+        abs_source = os.path.abspath(source_path)
+        print(f"🔍 [INIT] Trying utils source path: {abs_source}")
+        
+        if os.path.exists(abs_source):
+            with open(abs_source, 'r') as src:
+                content = src.read()
+            with open(COMPLEX_UTILS_FILE, 'w') as dst:
+                dst.write(content)
+            print(f"📁 [INIT] Successfully copied utils.py from {abs_source} to {COMPLEX_UTILS_FILE}")
+            utils_copied = True
+            break
+    
+    if not utils_copied:
+        print(f"⚠️ [INIT] Could not find utils.py, creating empty file")
         with open(COMPLEX_UTILS_FILE, 'w') as dst:
-            dst.write(content)
-        print(f"📁 Copied utils.py to {COMPLEX_UTILS_FILE}")
+            dst.write('# Utils file - created automatically\ndef helper_function():\n    pass\n')
+        print(f"📁 [INIT] Created fallback utils.py at {COMPLEX_UTILS_FILE}")
 
 # Verify files exist and log paths
 print(f"🔍 Target file path: {os.path.abspath(TARGET_FILE)}")
@@ -110,18 +184,39 @@ class AuditLogResponse(BaseModel):
 def read_sandbox_file():
     """Read the complex sandbox main file"""
     try:
-        with open(TARGET_FILE, "r") as f:
-            return f.read()
-    except FileNotFoundError:
+        abs_path = os.path.abspath(TARGET_FILE)
+        print(f"🔍 [DEBUG] Attempting to read main.py from: {abs_path}")
+        print(f"🔍 [DEBUG] File exists: {os.path.exists(abs_path)}")
+        
+        with open(abs_path, "r") as f:
+            content = f.read()
+            print(f"🔍 [DEBUG] Successfully read {len(content)} characters from main.py")
+            return content
+    except FileNotFoundError as e:
+        print(f"❌ [DEBUG] FileNotFoundError reading main.py: {e}")
+        print(f"❌ [DEBUG] Current working directory: {os.getcwd()}")
         return "# Complex sandbox file not found"
+    except Exception as e:
+        print(f"❌ [DEBUG] Error reading main.py: {e}")
+        return f"# Error reading file: {str(e)}"
 
 def read_utils_file():
     """Read the complex sandbox utils file"""
     try:
-        with open(COMPLEX_UTILS_FILE, "r") as f:
-            return f.read()
-    except FileNotFoundError:
+        abs_path = os.path.abspath(COMPLEX_UTILS_FILE)
+        print(f"🔍 [DEBUG] Attempting to read utils.py from: {abs_path}")
+        print(f"🔍 [DEBUG] File exists: {os.path.exists(abs_path)}")
+        
+        with open(abs_path, "r") as f:
+            content = f.read()
+            print(f"🔍 [DEBUG] Successfully read {len(content)} characters from utils.py")
+            return content
+    except FileNotFoundError as e:
+        print(f"❌ [DEBUG] FileNotFoundError reading utils.py: {e}")
         return "# Utils file not found"
+    except Exception as e:
+        print(f"❌ [DEBUG] Error reading utils.py: {e}")
+        return f"# Error reading file: {str(e)}"
 
 def get_available_files():
     """Get list of available complex sandbox files"""
