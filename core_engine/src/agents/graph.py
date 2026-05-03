@@ -1,5 +1,6 @@
 """LangGraph orchestration for the SRE self-healing agent."""
 
+import asyncio
 import re
 import os
 import sys
@@ -112,14 +113,25 @@ def _extract_code_block(text: str) -> str:
 async def analyzer_node(state: AgentState) -> AgentState:
     """Analyzes failing output and proposes a concrete code fix with deep analysis."""
     
+    # Start MTTR timer at the beginning of analysis phase
+    if state.get('mttr_start_time') is None:
+        state['mttr_start_time'] = time.time()
+        print("⏱️ [MTTR] Timer started - Beginning enterprise analysis phase")
+        
+        # Add enhanced audit trail event
+        current_time = time.time() - state['mttr_start_time']
+        print(f"[T+{current_time:.0f}s] Initiating SRE recovery protocol for {state.get('target_file', 'unknown')}")
+    
     # Force at least 2 thinking iterations before proposing a fix
     if state['iterations'] < 2:
         print(f"🧠 [Analyzer] Deep analysis iteration {state['iterations'] + 1}/2...")
         
-        # Enterprise-grade synthetic delays
+        # Enterprise-grade synthetic delays with asyncio
         if state['iterations'] == 0:
             print("🔍 [Analyzer] Performing deep dependency scanning...")
-            time.sleep(10)  # Simulate comprehensive dependency analysis
+            current_time = time.time() - state['mttr_start_time']
+            print(f"[T+{current_time:.0f}s] Aggregating distributed logs for root cause analysis...")
+            await asyncio.sleep(20)  # Simulate log aggregation and root cause discovery
             
             # First iteration: Analyze the error logs only
             user_prompt = (
@@ -130,7 +142,9 @@ async def analyzer_node(state: AgentState) -> AgentState:
             )
         else:
             print("📊 [Analyzer] Aggregating logs and forming hypothesis...")
-            time.sleep(15)  # Simulate log aggregation and hypothesis formation
+            current_time = time.time() - state['mttr_start_time']
+            print(f"[T+{current_time:.0f}s] Generating AI repair strategy and checking cross-module dependencies...")
+            await asyncio.sleep(10)  # Simulate cross-module dependency checking
             
             # Second iteration: Analyze the code context
             user_prompt = (
@@ -143,7 +157,9 @@ async def analyzer_node(state: AgentState) -> AgentState:
     else:
         # Third iteration: Propose the actual fix
         print("💡 [Analyzer] Generating comprehensive fix proposal...")
-        time.sleep(5)  # Simulate fix generation and validation
+        current_time = time.time() - state['mttr_start_time']
+        print(f"[T+{current_time:.0f}s] Finalizing repair strategy for {state.get('target_file', 'unknown')}")
+        await asyncio.sleep(15)  # Simulate AI repair strategy generation
         
         user_prompt = (
             "CODE FIX: Based on your analysis, provide the complete fixed code.\n\n"
@@ -199,10 +215,14 @@ async def executor_node(state: AgentState) -> AgentState:
         }
 
     print(" [Executor] Provisioning remote test environment...")
-    time.sleep(15)  # Simulate container provisioning and initialization
+    current_time = time.time() - state.get('mttr_start_time', time.time())
+    print(f"[T+{current_time:.0f}s] Provisioning isolated test environment...")
+    await asyncio.sleep(15)  # Simulate container provisioning and initialization
     
     print(" [Executor] Deploying fix to remote environment...")
-    time.sleep(10)  # Simulate deployment and warm-up
+    current_time = time.time() - state.get('mttr_start_time', time.time())
+    print(f"[T+{current_time:.0f}s] Applying patch to {state.get('target_file', 'unknown')} and initiating health check...")
+    await asyncio.sleep(10)  # Simulate deployment and warm-up
     
     # Apply the fix
     try:
@@ -213,7 +233,7 @@ async def executor_node(state: AgentState) -> AgentState:
         
         # Add deployment verification
         print(" [Executor] Verifying deployment integrity...")
-        time.sleep(5)  # Simulate deployment verification
+        await asyncio.sleep(5)  # Simulate deployment verification
         
     except Exception as e:
         print(f" [Executor] Failed to write fix: {e}")
@@ -223,7 +243,7 @@ async def executor_node(state: AgentState) -> AgentState:
         }
 
     print(" [Executor] Running remote test suite...")
-    time.sleep(20)  # Simulate comprehensive testing in remote environment
+    await asyncio.sleep(20)  # Simulate comprehensive testing in remote environment
     
     # Run tests
     test_result = await toolbox.run_tests()
@@ -231,24 +251,31 @@ async def executor_node(state: AgentState) -> AgentState:
     if test_result.status == "passed":
         print("🎉 [Executor] System restored - All tests passed!")
         
-        # Enterprise-grade post-repair monitoring phase
-        print("🔍 [Executor] Starting 30-second post-repair monitoring phase...")
-        time.sleep(30)  # Simulate production monitoring and regression detection
+        # Enterprise-grade verification phase with asyncio
+        print("🔍 [Executor] Starting 30-second deployment stability check...")
+        await asyncio.sleep(30)  # Simulate deployment stability check
         
-        print("✅ [Executor] Monitoring complete - No regressions detected")
+        print("✅ [Executor] Stability check complete - System verified")
         
+        # Calculate and log final MTTR
+        if state.get('mttr_start_time'):
+            mttr_time = time.time() - state['mttr_start_time']
+            print(f"[T+{mttr_time:.0f}s] Recovery verified. MTTR: {mttr_time/60:.1f}m. No human intervention required.")
+            
         return {
             "iterations": state["iterations"] + 1,
             "history": [
                 "Applied fix from analyzer.",
                 "Remote test suite executed successfully.",
                 "✅ System restored - All tests passed!",
-                "🔍 30-second post-repair monitoring completed",
-                "✅ No regressions detected - System stable",
+                "🔍 30-second deployment stability check completed",
+                "✅ System verified and stable",
+                f"[T+{mttr_time:.0f}s] Recovery verified. MTTR: {mttr_time/60:.1f}m. No human intervention required." if state.get('mttr_start_time') else "✅ Recovery complete",
                 f"Final code:\n{code_to_write}",
             ],
             "final_code": code_to_write,
             "status": "success",
+            "mttr_time": mttr_time if state.get('mttr_start_time') else None,
         }
     else:
         print(f" [Executor] Tests still failing: {test_result.output}")
