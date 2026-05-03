@@ -484,7 +484,7 @@ async def repair_bug():
             post_fix_code = result.get("final_code", "# Fixed code not available")
         
         total_time = round(time.time() - start_time, 2)
-        add_audit_log(f"[{datetime.now().strftime('%H:%M:%S')}] 📈 Autonomous repair completed - MTTR: {total_time}s")
+        add_audit_log(f"[{datetime.now().strftime('%H:%M:%S')}] 📈 Autonomous repair completed - MTTR: {total_time:.2f}s")
         
         # Return exact JSON structure that frontend expects
         return {
@@ -492,9 +492,9 @@ async def repair_bug():
             "audit_logs": audit_logs,
             "original_code": pre_fix_code,
             "final_code": post_fix_code,
-            "mttr_time": total_time,
+            "mttr_time": round(total_time, 2),
             "iterations": result.get("iterations", 0),
-            "history": result.get("history", []) + [f"Final SRE verification passed. MTTR: {total_time}s"],
+            "history": result.get("history", []) + [f"Final SRE verification passed. MTTR: {total_time:.2f}s"],
             "is_fixed": result.get("status") == "success"
         }
         

@@ -33,7 +33,7 @@ try:
     )
     # Test connection with a simple message
     test_response = llm.invoke("Test connection")
-    print("✅ LLM initialized and connection verified with llama-3.1-8b-instant (stable)")
+    print("✅ LLM initialized and connection verified with llama-3.1-8b-instant (STABLE)")
 except Exception as e:
     print(f"Failed to initialize LLM with llama-3.1-8b-instant: {e}")
     # Fallback to supported model
