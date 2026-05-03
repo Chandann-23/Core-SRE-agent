@@ -222,13 +222,48 @@ def get_available_files():
     """Get list of available complex sandbox files"""
     files = []
     try:
-        if os.path.exists(TARGET_FILE):
-            files.append({"name": "main.py", "path": TARGET_FILE, "type": "main"})
-        if os.path.exists(COMPLEX_UTILS_FILE):
-            files.append({"name": "utils.py", "path": COMPLEX_UTILS_FILE, "type": "utils"})
+        # Use absolute paths for security and clarity
+        abs_main_path = os.path.abspath(TARGET_FILE)
+        abs_utils_path = os.path.abspath(COMPLEX_UTILS_FILE)
+        
+        print(f"🔍 [FILES] Checking available files...")
+        print(f"🔍 [FILES] Main path: {abs_main_path}")
+        print(f"🔍 [FILES] Utils path: {abs_utils_path}")
+        
+        main_exists = os.path.exists(abs_main_path)
+        utils_exists = os.path.exists(abs_utils_path)
+        
+        print(f"🔍 [FILES] Main exists: {main_exists}")
+        print(f"🔍 [FILES] Utils exists: {utils_exists}")
+        
+        if main_exists:
+            files.append({
+                "name": "main.py", 
+                "path": abs_main_path, 
+                "type": "main"
+            })
+            print(f"🔍 [FILES] Added main.py to available files")
+            
+        if utils_exists:
+            files.append({
+                "name": "utils.py", 
+                "path": abs_utils_path, 
+                "type": "utils"
+            })
+            print(f"🔍 [FILES] Added utils.py to available files")
+            
+        print(f"🔍 [FILES] Total available files: {len(files)}")
         return files
-    except Exception:
-        return [{"name": "main.py", "path": TARGET_FILE, "type": "main"}]
+        
+    except Exception as e:
+        print(f"❌ [FILES] Error getting available files: {e}")
+        # Fallback to ensure frontend always gets something
+        fallback_path = os.path.abspath(TARGET_FILE)
+        return [{
+            "name": "main.py", 
+            "path": fallback_path, 
+            "type": "main"
+        }]
 
 def inject_search_replace_bug(bug_type: str) -> str:
     """Surgical bug injection using regex replacement with backup system"""
@@ -500,8 +535,14 @@ async def get_code() -> StatusResponse:
 @app.get("/files", response_model=dict)
 async def get_files() -> dict:
     """Get available complex sandbox files"""
+    print(f"🔍 [API] /files endpoint called")
+    print(f"🔍 [API] Current working directory: {os.getcwd()}")
+    
+    files = get_available_files()
+    print(f"🔍 [API] Available files: {[f['name'] for f in files]}")
+    
     return {
-        "files": get_available_files(),
+        "files": files,
         "current_file": "main.py",
         "timestamp": datetime.now().isoformat()
     }
@@ -509,8 +550,11 @@ async def get_files() -> dict:
 @app.get("/file/{filename}", response_model=dict)
 async def get_file_content(filename: str) -> dict:
     """Get content of a specific complex sandbox file"""
+    print(f"🔍 [API] /file/{filename} endpoint called")
+    
     if filename == "main.py":
         content = read_sandbox_file()
+        print(f"🔍 [API] Serving main.py with {len(content)} characters")
         return {
             "filename": filename,
             "content": content,
@@ -519,6 +563,7 @@ async def get_file_content(filename: str) -> dict:
         }
     elif filename == "utils.py":
         content = read_utils_file()
+        print(f"🔍 [API] Serving utils.py with {len(content)} characters")
         return {
             "filename": filename,
             "content": content,
@@ -526,9 +571,10 @@ async def get_file_content(filename: str) -> dict:
             "timestamp": datetime.now().isoformat()
         }
     else:
+        print(f"❌ [API] Unknown file requested: {filename}")
         return {
             "filename": filename,
-            "content": "# File not found",
+            "content": f"# File '{filename}' not found",
             "type": "unknown",
             "timestamp": datetime.now().isoformat()
         }
