@@ -47,6 +47,7 @@ function App() {
   const [isRunningFullAudit, setIsRunningFullAudit] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [finalMttrTime, setFinalMttrTime] = useState(0);
+  const [showWaitingMessage, setShowWaitingMessage] = useState(false);
   const [availableFiles, setAvailableFiles] = useState([]);
   const [currentFile, setCurrentFile] = useState("main.py");
   
@@ -56,21 +57,32 @@ function App() {
   const fetchComplexFiles = async () => {
     try {
       const res = await axios.get(`${API_BASE}/files`);
-      setAvailableFiles(res.data.files || []);
-      setCurrentFile(res.data.current_file || "main.py");
+      if (res.data && res.data.files) {
+        setAvailableFiles(res.data.files || []);
+        setCurrentFile(res.data.current_file || "main.py");
+      }
     } catch (err) {
-      console.error("Failed to fetch complex files");
+      console.error("Failed to fetch complex files:", err);
+      // Set fallback values to prevent UI crash
+      setAvailableFiles([{"name": "main.py", "path": "../complex_sandbox/app/main.py", "type": "main"}]);
+      setCurrentFile("main.py");
     }
   };
 
   const fetchComplexFileContent = async (filename = "main.py") => {
     try {
       const res = await axios.get(`${API_BASE}/file/${filename}`);
-      setCode(res.data.content || "# File not found");
-      setCurrentFile(res.data.filename || filename);
+      if (res.data && res.data.content) {
+        setCode(res.data.content);
+        setCurrentFile(res.data.filename || filename);
+      } else {
+        setCode("# File content not available");
+      }
     } catch (err) {
-      console.error("Failed to fetch file content");
-      setCode("# Error loading file");
+      console.error("Failed to fetch file content:", err);
+      // Set fallback content to prevent UI crash
+      setCode("# Error loading file content");
+      setCurrentFile(filename);
     }
   };
 
@@ -159,16 +171,24 @@ function App() {
   };
 
   const stopMttrTimer = () => {
-    if (mttrIntervalRef.current) {
-      clearInterval(mttrIntervalRef.current);
-      mttrIntervalRef.current = null;
+    try {
+      if (mttrIntervalRef.current) {
+        clearInterval(mttrIntervalRef.current);
+        mttrIntervalRef.current = null;
+      }
+    } catch (err) {
+      console.error("Error stopping MTTR timer:", err);
     }
   };
 
   const stopAuditPolling = () => {
-    if (auditPollRef.current) {
-      clearInterval(auditPollRef.current);
-      auditPollRef.current = null;
+    try {
+      if (auditPollRef.current) {
+        clearInterval(auditPollRef.current);
+        auditPollRef.current = null;
+      }
+    } catch (err) {
+      console.error("Error stopping audit polling:", err);
     }
   };
 
@@ -414,18 +434,39 @@ function App() {
   };
 
   useEffect(() => {
-    fetchPastSessions();
-    fetchComplexFiles();
-    fetchComplexFileContent("main.py");
+    try {
+      fetchPastSessions();
+      fetchComplexFiles();
+      fetchComplexFileContent("main.py");
+    } catch (err) {
+      console.error("Initialization error:", err);
+      // Set fallback values to prevent UI crash
+      setCode(FALLBACK_CODE);
+      setAvailableFiles([{"name": "main.py", "path": "../complex_sandbox/app/main.py", "type": "main"}]);
+      setCurrentFile("main.py");
+    }
   }, []);
 
   useEffect(() => {
-    // Start status polling
-    const statusInterval = setInterval(() => {
-      fetchComplexFileContent(currentFile);
-    }, 5000); // Poll every 5 seconds
+    try {
+      // Start status polling
+      const statusInterval = setInterval(() => {
+        if (currentFile) {
+          fetchComplexFileContent(currentFile);
+        }
+      }, 5000); // Poll every 5 seconds
 
-    return () => clearInterval(statusInterval);
+      return () => {
+        try {
+          clearInterval(statusInterval);
+        } catch (err) {
+          console.error("Error cleaning up status interval:", err);
+        }
+      };
+    } catch (err) {
+      console.error("Status polling error:", err);
+      return () => {}; // Return empty cleanup function
+    }
   }, [currentFile]);
 
   useEffect(() => {

@@ -10,17 +10,26 @@ const SuccessModal = ({
 }) => {
   // Add Escape key support
   useEffect(() => {
-    const handleEscapeKey = (event) => {
-      if (event.key === 'Escape' && isOpen) {
-        console.log('🔄 NUCLEAR RESET: Escape key pressed!');
-        onClose();
-      }
-    };
+    try {
+      const handleEscapeKey = (event) => {
+        if (event.key === 'Escape' && isOpen) {
+          console.log('🔄 NUCLEAR RESET: Escape key pressed!');
+          onClose();
+        }
+      };
 
-    document.addEventListener('keydown', handleEscapeKey);
-    return () => {
-      document.removeEventListener('keydown', handleEscapeKey);
-    };
+      document.addEventListener('keydown', handleEscapeKey);
+      return () => {
+        try {
+          document.removeEventListener('keydown', handleEscapeKey);
+        } catch (err) {
+          console.error('Error removing escape key listener:', err);
+        }
+      };
+    } catch (err) {
+      console.error('Error setting up escape key listener:', err);
+      return () => {}; // Return empty cleanup function
+    }
   }, [isOpen, onClose]);
 
   console.log('🔄 NUCLEAR RESET: SuccessModal render, isOpen:', isOpen);
