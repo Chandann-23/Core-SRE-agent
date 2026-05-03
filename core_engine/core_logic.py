@@ -331,9 +331,13 @@ def read_sandbox_file() -> str:
         return ""
 
 # --- WORKFLOW EXECUTION ---
-async def run_autonomous_repair(target_file: str, error_logs: str) -> dict:
+async def run_autonomous_repair(target_file: str, error_logs: str, config: dict | None = None) -> dict:
     """Run the autonomous repair workflow."""
     print("🚀 [SRE] Starting autonomous repair workflow...")
+    
+    # Use default config if none provided
+    if config is None:
+        config = {"configurable": {"thread_id": "default-session"}}
     
     # Get current code context
     code_context = read_sandbox_file()
@@ -352,9 +356,9 @@ async def run_autonomous_repair(target_file: str, error_logs: str) -> dict:
         "mttr_time": None,
     }
     
-    # Run the workflow
+    # Run the workflow with config
     try:
-        result = await graph.ainvoke(initial_state)
+        result = await graph.ainvoke(initial_state, config)
         
         # Format response
         return {

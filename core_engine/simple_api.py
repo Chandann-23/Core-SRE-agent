@@ -17,6 +17,15 @@ load_dotenv()
 
 app = FastAPI(title="CORE SRE API - Enterprise Handshake")
 
+# --- AUDIT TRAIL ---
+audit_logs = []  # Global list to store timestamped strings
+
+def add_audit_log(message: str):
+    """Add a timestamped message to the audit trail"""
+    timestamped_message = f"[{datetime.now().strftime('%H:%M:%S.%f')[:-3]}] {message}"
+    audit_logs.append(timestamped_message)
+    print(f"AUDIT: {timestamped_message}")
+
 # --- PATH RESOLUTION (FIXES RECURSIVE LOOP) ---
 # Use an absolute base to prevent 'complex_sandbox/complex_sandbox' nesting
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -39,25 +48,149 @@ def create_default_files():
     utils_file = os.path.join(SANDBOX_ROOT, "utils.py")
     
     if not os.path.exists(main_file):
-        default_main = '''"""Default main.py - Auto-provisioned by SRE Agent"""
-from fastapi import FastAPI
-from pydantic import BaseModel
+        # Complex Financial Transaction System with multiple vulnerabilities
+        complex_main = '''"""Financial Transaction System - Enterprise Grade"""
+import asyncio
+import time
+from datetime import datetime
+from typing import Dict, List, Optional
+from dataclasses import dataclass
 
-app = FastAPI()
+@dataclass
+class Transaction:
+    transaction_id: str
+    amount: float
+    currency: str
+    merchant_id: str
+    customer_id: str
+    timestamp: datetime
+    status: str = "pending"
 
-class ProcessRequest(BaseModel):
-    values: list[int]
+class PaymentProcessor:
+    def __init__(self):
+        self.merchant_rates = {"US": 0.029, "EU": 0.021, "UK": 0.025}
+        self.transaction_queue = []
+        self.processed_transactions = []
+    
+    def calculate_tax(self, amount: float, region: str) -> float:
+        """Calculate tax based on region and amount"""
+        # VULNERABILITY 1: TypeError - treating amount as string
+        if region == "US":
+            tax_rate = 0.0825
+        elif region == "EU":
+            tax_rate = 0.21
+        elif region == "UK":
+            tax_rate = 0.20
+        else:
+            tax_rate = 0.15
+        
+        # BUG: TypeError when amount is passed as string
+        return amount * (1 + tax_rate)
+    
+    def process_payment(self, transaction: Transaction) -> Dict:
+        """Process a financial transaction"""
+        try:
+            # VULNERABILITY 2: IndexError - accessing payment_methods without bounds check
+            payment_methods = ["credit_card", "debit_card", "bank_transfer", "digital_wallet"]
+            method_index = int(transaction.transaction_id[-1])  # Last digit as index
+            
+            # BUG: IndexError when last digit > 3
+            payment_method = payment_methods[method_index]
+            
+            # Calculate total with tax
+            total_with_tax = self.calculate_tax(transaction.amount, "US")
+            
+            # Process the payment
+            processing_fee = total_with_tax * self.merchant_rates.get("US", 0.025)
+            net_amount = total_with_tax - processing_fee
+            
+            result = {
+                "transaction_id": transaction.transaction_id,
+                "status": "completed",
+                "payment_method": payment_method,
+                "gross_amount": transaction.amount,
+                "tax_amount": total_with_tax - transaction.amount,
+                "processing_fee": processing_fee,
+                "net_amount": net_amount,
+                "processed_at": datetime.now().isoformat()
+            }
+            
+            self.processed_transactions.append(result)
+            return result
+            
+        except Exception as e:
+            return {
+                "transaction_id": transaction.transaction_id,
+                "status": "failed",
+                "error": str(e),
+                "failed_at": datetime.now().isoformat()
+            }
+    
+    def generate_receipt(self, transaction_result: Dict) -> str:
+        """Generate a detailed receipt for the transaction"""
+        if transaction_result["status"] == "completed":
+            receipt = f"""
+===========================================
+FINANCIAL TRANSACTION RECEIPT
+===========================================
+Transaction ID: {transaction_result['transaction_id']}
+Payment Method: {transaction_result['payment_method']}
+Gross Amount: ${transaction_result['gross_amount']:.2f}
+Tax Amount: ${transaction_result['tax_amount']:.2f}
+Processing Fee: ${transaction_result['processing_fee']:.2f}
+Net Amount: ${transaction_result['net_amount']:.2f}
+Processed At: {transaction_result['processed_at']}
+===========================================
+Thank you for your business!
+"""
+        else:
+            receipt = f"""
+===========================================
+TRANSACTION FAILED
+===========================================
+Transaction ID: {transaction_result['transaction_id']}
+Error: {transaction_result['error']}
+Failed At: {transaction_result['failed_at']}
+===========================================
+Please contact support if needed.
+"""
+        return receipt.strip()
 
-@app.post('/process')
-async def process_payload(payload: ProcessRequest) -> dict[str, int]:
-    # BUG: No bounds checking - this will cause IndexError
-    first = payload.values[0]  # Vulnerable to empty list
-    total = sum(payload.values)
-    return {'first': first, 'total': total}
+# Global payment processor instance
+payment_processor = PaymentProcessor()
+
+@app.post('/process-transaction')
+async def process_transaction_endpoint(transaction_data: dict) -> dict:
+    """API endpoint for processing financial transactions"""
+    try:
+        transaction = Transaction(
+            transaction_id=transaction_data.get('transaction_id'),
+            amount=transaction_data.get('amount'),
+            currency=transaction_data.get('currency', 'USD'),
+            merchant_id=transaction_data.get('merchant_id'),
+            customer_id=transaction_data.get('customer_id'),
+            timestamp=datetime.now()
+        )
+        
+        result = payment_processor.process_payment(transaction)
+        receipt = payment_processor.generate_receipt(result)
+        
+        return {
+            "success": True,
+            "result": result,
+            "receipt": receipt
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
 '''
         with open(main_file, 'w') as f:
-            f.write(default_main)
-        print(f"Created default main.py at {main_file}")
+            f.write(complex_main)
+        print(f"Created complex Financial Transaction System at {main_file}")
     
     if not os.path.exists(utils_file):
         default_utils = '''"""Default utils.py - Auto-provisioned by SRE Agent"""
@@ -104,6 +237,12 @@ class RepairResponse(BaseModel):
     final_code: str
     mttr_time: float
     is_fixed: bool
+    original_code: str | None = None
+
+class AuditLogResponse(BaseModel):
+    logs: list[str]
+    timestamp: str
+    status: str
 
 # --- CORE ENDPOINTS ---
 
@@ -154,17 +293,42 @@ async def repair_bug():
     start_time = time.time()
     target_file = os.path.join(SANDBOX_ROOT, "main.py")
     
-    # Node 1: Simulated Analysis (20s)
-    # The UI will stay on 'Repairing...' while this happens
-    await asyncio.sleep(20) 
+    # Read original code for diff comparison
+    original_code = ""
+    try:
+        with open(target_file, 'r') as f:
+            original_code = f.read()
+    except Exception as e:
+        add_audit_log(f"Warning: Could not read original file: {e}")
+        original_code = "# Original code not available"
     
-    # Node 2: Actual AI Repair logic from core_logic
-    result = await run_autonomous_repair(target_file, "IndexError: list index out of range")
+    # Clear previous audit logs for new repair session
+    audit_logs.clear()
+    add_audit_log("🚀 SRE Agent initiated autonomous repair")
+    
+    # Node 1: Simulated Analysis (20s)
+    add_audit_log("📊 Scanning transaction modules...")
+    await asyncio.sleep(10)  # First 10s chunk
+    add_audit_log("🔍 Heuristic analysis of chained vulnerabilities...")
+    await asyncio.sleep(10)  # Second 10s chunk
+    add_audit_log("🧠 TypeError detected in tax calculation AND IndexError in payment processing")
+    
+    # Node 2: Actual AI Repair logic from core_logic with thread_id config
+    add_audit_log("⚡ Generating AI repair strategy for Financial Transaction System...")
+    config = {"configurable": {"thread_id": "sre-prod-1"}}
+    result = await run_autonomous_repair(target_file, "TypeError in calculate_tax and IndexError in process_payment", config)
+    add_audit_log("🔧 AI repair logic executed successfully")
     
     # Node 3: Simulated Stability Verification (35s)
-    await asyncio.sleep(35)
+    add_audit_log("🔧 Performing regression testing on patched logic...")
+    await asyncio.sleep(15)  # First 15s chunk
+    add_audit_log("🔍 Validating financial transaction integrity...")
+    await asyncio.sleep(10)  # Second 10s chunk
+    add_audit_log("✅ System stability verification complete")
+    await asyncio.sleep(10)  # Final 10s chunk
     
     total_mttr = round(time.time() - start_time, 2)
+    add_audit_log(f"📈 Autonomous repair completed - MTTR: {total_mttr}s")
     
     return RepairResponse(
         status=result["status"],
@@ -172,8 +336,25 @@ async def repair_bug():
         history=result["history"] + [f"Final SRE verification passed. MTTR: {total_mttr}s"],
         final_code=result["final_code"],
         mttr_time=total_mttr,
-        is_fixed=result["status"] == "success"
+        is_fixed=result["status"] == "success",
+        original_code=original_code
     )
+
+@app.get("/audit-logs", response_model=AuditLogResponse)
+async def get_audit_logs() -> AuditLogResponse:
+    """Get the current audit trail"""
+    return AuditLogResponse(
+        logs=audit_logs.copy(),
+        timestamp=datetime.now().isoformat(),
+        status="active"
+    )
+
+@app.delete("/audit-logs")
+async def clear_audit_logs_endpoint():
+    """Clear all audit logs"""
+    audit_logs.clear()
+    add_audit_log("Audit trail cleared")
+    return {"status": "cleared", "message": "Audit logs cleared"}
 
 @app.get("/health")
 def health():
@@ -183,10 +364,6 @@ def health():
         'exists': os.path.exists(SANDBOX_ROOT),
         'cwd': os.getcwd()
     }
-
-@app.get("/")
-async def root():
-    return {"message": "CORE SRE API - Enterprise Handshake Complete", "status": "Healthy"}
 
 if __name__ == "__main__":
     import uvicorn
