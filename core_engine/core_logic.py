@@ -26,6 +26,7 @@ if not api_key:
     print("❌ GROQ_API_KEY not found in environment variables")
     sys.exit(1)
 
+# Hard-code llama-3.1-8b-instant as primary model
 try:
     llm = ChatGroq(
         model="llama-3.1-8b-instant",
@@ -35,28 +36,8 @@ try:
     test_response = llm.invoke("Test connection")
     print("✅ LLM initialized and connection verified with llama-3.1-8b-instant (PRIMARY)")
 except Exception as e:
-    print(f"Failed to initialize LLM with llama-3.1-8b-instant: {e}")
-    # Fallback to supported model
-    try:
-        llm = ChatGroq(
-            model="llama-3.1-70b-specdec",
-            api_key=api_key
-        )
-        test_response = llm.invoke("Test connection")
-        print("✅ LLM initialized and connection verified with llama-3.1-70b-specdec fallback")
-    except Exception as e2:
-        print(f"Failed to initialize fallback LLM: {e2}")
-        # Final fallback
-        try:
-            llm = ChatGroq(
-                model="llama-3.3-70b-specdec",
-                api_key=api_key
-            )
-            test_response = llm.invoke("Test connection")
-            print("✅ LLM initialized and connection verified with llama-3.3-70b-specdec final fallback")
-        except Exception as e3:
-            print(f"❌ All LLM models failed: {e3}")
-            sys.exit(1)
+    print(f"❌ Failed to initialize LLM with llama-3.1-8b-instant: {e}")
+    sys.exit(1)
 
 # Import core components
 from llms import get_llm

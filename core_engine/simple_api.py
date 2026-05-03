@@ -207,17 +207,7 @@ create_default_files()
 
 # --- CORS ---
 allowed_origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173", 
-    "https://localhost:5173",
-    "https://127.0.0.1:5173",
-    "https://core-sre-agent.vercel.app",  # Production Vercel domain
-    "https://core-sre-engine.vercel.app",  # Alternative Vercel domain
-    "https://core-sre-frontend.onrender.com",  # Render frontend domain
-    "https://*.vercel.app",  # Any Vercel subdomain
-    "https://*.onrender.com",  # Any Render subdomain
-    frontend_url,
-    "*"  # Fallback for development
+    "https://core-sre-engine.vercel.app"
 ]
 
 app.add_middleware(
