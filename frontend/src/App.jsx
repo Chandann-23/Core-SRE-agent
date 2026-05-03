@@ -121,7 +121,7 @@ function App() {
         await new Promise(resolve => setTimeout(resolve, delay));
       }
       
-      const res = await apiCall('get', `/file/${filename}`);
+      const res = await apiCall('get', `/get-file/complex_sandbox/app/${filename}`);
       if (res.data && res.data.content) {
         setCode(res.data.content);
         setCurrentFile(res.data.filename || filename);

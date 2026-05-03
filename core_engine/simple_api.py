@@ -28,21 +28,29 @@ TMP_SANDBOX_DIR = "/tmp/complex_sandbox"
 TARGET_FILE = os.path.join(TMP_SANDBOX_DIR, "app/main.py")
 COMPLEX_UTILS_FILE = os.path.join(TMP_SANDBOX_DIR, "app/utils.py")
 
-# Ensure sandbox directory exists
+# Fallback to local complex_sandbox if /tmp doesn't work
+LOCAL_SANDBOX_DIR = os.path.abspath("./complex_sandbox")
+LOCAL_TARGET_FILE = os.path.join(LOCAL_SANDBOX_DIR, "app/main.py")
+LOCAL_UTILS_FILE = os.path.join(LOCAL_SANDBOX_DIR, "app/utils.py")
+
+# Ensure sandbox directories exist
 os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
 os.makedirs(os.path.dirname(COMPLEX_UTILS_FILE), exist_ok=True)
+os.makedirs(os.path.dirname(LOCAL_TARGET_FILE), exist_ok=True)
+os.makedirs(os.path.dirname(LOCAL_UTILS_FILE), exist_ok=True)
 
 # Copy files from local complex_sandbox to /tmp if they don't exist
 print(f"🔍 [INIT] Checking if files need to be copied to /tmp/complex_sandbox...")
 print(f"🔍 [INIT] Current working directory: {os.getcwd()}")
 
 if not os.path.exists(TARGET_FILE):
-    # Try multiple possible source paths
+    # Try multiple possible source paths with absolute resolution
     possible_paths = [
         "../complex_sandbox/app/main.py",
         "./complex_sandbox/app/main.py",
         "complex_sandbox/app/main.py",
-        "/app/complex_sandbox/app/main.py"  # Render deployment path
+        "/app/complex_sandbox/app/main.py",  # Render deployment path
+        os.path.join(os.getcwd(), "complex_sandbox/app/main.py")  # Absolute current dir
     ]
     
     file_copied = False
@@ -139,6 +147,8 @@ allowed_origins = [
     "http://127.0.0.1:5173", 
     "https://localhost:5173",
     "https://127.0.0.1:5173",
+    "https://core-sre-agent.vercel.app",  # Production Vercel domain
+    "https://*.vercel.app",  # Any Vercel subdomain
     frontend_url,
     "*"  # Fallback for development
 ]
@@ -183,40 +193,52 @@ class AuditLogResponse(BaseModel):
 # --- HELPER FUNCTIONS FOR DEMO MODE ---
 def read_sandbox_file():
     """Read the complex sandbox main file"""
-    try:
-        abs_path = os.path.abspath(TARGET_FILE)
-        print(f"🔍 [DEBUG] Attempting to read main.py from: {abs_path}")
-        print(f"🔍 [DEBUG] File exists: {os.path.exists(abs_path)}")
-        
-        with open(abs_path, "r") as f:
-            content = f.read()
-            print(f"🔍 [DEBUG] Successfully read {len(content)} characters from main.py")
-            return content
-    except FileNotFoundError as e:
-        print(f"❌ [DEBUG] FileNotFoundError reading main.py: {e}")
-        print(f"❌ [DEBUG] Current working directory: {os.getcwd()}")
-        return "# Complex sandbox file not found"
-    except Exception as e:
-        print(f"❌ [DEBUG] Error reading main.py: {e}")
-        return f"# Error reading file: {str(e)}"
+    # Try /tmp first, then fallback to local
+    for file_path in [TARGET_FILE, LOCAL_TARGET_FILE]:
+        try:
+            abs_path = os.path.abspath(file_path)
+            print(f"🔍 [DEBUG] Attempting to read main.py from: {abs_path}")
+            print(f"🔍 [DEBUG] File exists: {os.path.exists(abs_path)}")
+            
+            if os.path.exists(abs_path):
+                with open(abs_path, "r") as f:
+                    content = f.read()
+                    print(f"🔍 [DEBUG] Successfully read {len(content)} characters from main.py")
+                    return content
+        except FileNotFoundError as e:
+            print(f"❌ [DEBUG] FileNotFoundError reading main.py from {file_path}: {e}")
+            continue
+        except Exception as e:
+            print(f"❌ [DEBUG] Error reading main.py from {file_path}: {e}")
+            continue
+    
+    print(f"❌ [DEBUG] Could not read main.py from any location")
+    print(f"❌ [DEBUG] Current working directory: {os.getcwd()}")
+    return "# Complex sandbox file not found"
 
 def read_utils_file():
     """Read the complex sandbox utils file"""
-    try:
-        abs_path = os.path.abspath(COMPLEX_UTILS_FILE)
-        print(f"🔍 [DEBUG] Attempting to read utils.py from: {abs_path}")
-        print(f"🔍 [DEBUG] File exists: {os.path.exists(abs_path)}")
-        
-        with open(abs_path, "r") as f:
-            content = f.read()
-            print(f"🔍 [DEBUG] Successfully read {len(content)} characters from utils.py")
-            return content
-    except FileNotFoundError as e:
-        print(f"❌ [DEBUG] FileNotFoundError reading utils.py: {e}")
-        return "# Utils file not found"
-    except Exception as e:
-        print(f"❌ [DEBUG] Error reading utils.py: {e}")
-        return f"# Error reading file: {str(e)}"
+    # Try /tmp first, then fallback to local
+    for file_path in [COMPLEX_UTILS_FILE, LOCAL_UTILS_FILE]:
+        try:
+            abs_path = os.path.abspath(file_path)
+            print(f"🔍 [DEBUG] Attempting to read utils.py from: {abs_path}")
+            print(f"🔍 [DEBUG] File exists: {os.path.exists(abs_path)}")
+            
+            if os.path.exists(abs_path):
+                with open(abs_path, "r") as f:
+                    content = f.read()
+                    print(f"🔍 [DEBUG] Successfully read {len(content)} characters from utils.py")
+                    return content
+        except FileNotFoundError as e:
+            print(f"❌ [DEBUG] FileNotFoundError reading utils.py from {file_path}: {e}")
+            continue
+        except Exception as e:
+            print(f"❌ [DEBUG] Error reading utils.py from {file_path}: {e}")
+            continue
+    
+    print(f"❌ [DEBUG] Could not read utils.py from any location")
+    return "# Utils file not found"
 
 def get_available_files():
     """Get list of available complex sandbox files"""
@@ -547,37 +569,44 @@ async def get_files() -> dict:
         "timestamp": datetime.now().isoformat()
     }
 
-@app.get("/file/{filename}", response_model=dict)
-async def get_file_content(filename: str) -> dict:
+@app.get("/get-file/{path:path}", response_model=dict)
+async def get_file_content(path: str) -> dict:
     """Get content of a specific complex sandbox file"""
-    print(f"🔍 [API] /file/{filename} endpoint called")
+    print(f"🔍 [API] /get-file/{path} endpoint called")
     
-    if filename == "main.py":
+    # Handle both "main.py" and "complex_sandbox/app/main.py" paths
+    if path.endswith("main.py"):
         content = read_sandbox_file()
         print(f"🔍 [API] Serving main.py with {len(content)} characters")
         return {
-            "filename": filename,
+            "filename": "main.py",
             "content": content,
             "type": "main",
             "timestamp": datetime.now().isoformat()
         }
-    elif filename == "utils.py":
+    elif path.endswith("utils.py"):
         content = read_utils_file()
         print(f"🔍 [API] Serving utils.py with {len(content)} characters")
         return {
-            "filename": filename,
+            "filename": "utils.py",
             "content": content,
             "type": "utils",
             "timestamp": datetime.now().isoformat()
         }
     else:
-        print(f"❌ [API] Unknown file requested: {filename}")
+        print(f"❌ [API] Unknown file requested: {path}")
         return {
-            "filename": filename,
-            "content": f"# File '{filename}' not found",
+            "filename": path,
+            "content": f"# File '{path}' not found",
             "type": "unknown",
             "timestamp": datetime.now().isoformat()
         }
+
+# Keep the old route for backward compatibility
+@app.get("/file/{filename}", response_model=dict)
+async def get_file_content_legacy(filename: str) -> dict:
+    """Legacy endpoint for backward compatibility"""
+    return await get_file_content(filename)
 
 @app.get("/audit-logs", response_model=AuditLogResponse)
 async def get_audit_logs() -> AuditLogResponse:
