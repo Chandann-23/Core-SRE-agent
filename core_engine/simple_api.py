@@ -208,9 +208,16 @@ create_default_files()
 # --- CORS ---
 allowed_origins = [
     "http://localhost:5173",
-    "https://core-sre-engine.vercel.app",
+    "http://127.0.0.1:5173", 
+    "https://localhost:5173",
+    "https://127.0.0.1:5173",
+    "https://core-sre-agent.vercel.app",  # Production Vercel domain
+    "https://core-sre-engine.vercel.app",  # Alternative Vercel domain
+    "https://core-sre-frontend.onrender.com",  # Render frontend domain
+    "https://*.vercel.app",  # Any Vercel subdomain
+    "https://*.onrender.com",  # Any Render subdomain
     frontend_url,
-    "*"
+    "*"  # Fallback for development
 ]
 
 app.add_middleware(
@@ -292,6 +299,10 @@ async def inject_bug():
     """
     try:
         target_file = os.path.join(SANDBOX_ROOT, "main.py")
+        
+        # Clear and initialize audit logs for bug injection
+        audit_logs.clear()
+        add_audit_log(f"[{datetime.now().strftime('%H:%M:%S')}] 🐛 Starting bug injection into Financial Transaction System")
         
         # Complex Financial Transaction System with vulnerabilities
         vulnerable_code = '''from dataclasses import dataclass
@@ -389,9 +400,13 @@ if __name__ == "__main__":
         with open(target_file, 'w') as f:
             f.write(vulnerable_code)
         
+        add_audit_log(f"[{datetime.now().strftime('%H:%M:%S')}] ✅ Bugs injected: TypeError in calculate_tax, IndexError in process_payment")
+        add_audit_log(f"[{datetime.now().strftime('%H:%M:%S')}] 📁 Vulnerable code written to {target_file}")
+        
         return {
             "status": "success",
             "message": "Bugs injected into Financial Transaction System",
+            "audit_logs": audit_logs.copy(),  # Include audit logs for frontend
             "vulnerabilities": [
                 "TypeError in calculate_tax when amount is None",
                 "IndexError in process_payment when accessing payment_methods"
@@ -400,9 +415,11 @@ if __name__ == "__main__":
         }
         
     except Exception as e:
+        add_audit_log(f"[{datetime.now().strftime('%H:%M:%S')}] ❌ Bug injection failed: {str(e)}")
         return {
             "status": "failed",
-            "message": f"Failed to inject bugs: {str(e)}"
+            "message": f"Failed to inject bugs: {str(e)}",
+            "audit_logs": audit_logs.copy()  # Include audit logs even on error
         }
 
 @app.post("/repair", response_model=RepairResponse)

@@ -20,7 +20,7 @@ except ImportError as e:
     print(f"Failed to import LLM components: {e}")
     sys.exit(1)
 
-# Initialize LLM with supported model and verify connection
+# Initialize LLM with stable model and verify connection
 api_key = os.getenv("GROQ_API_KEY")
 if not api_key:
     print("❌ GROQ_API_KEY not found in environment variables")
@@ -28,32 +28,32 @@ if not api_key:
 
 try:
     llm = ChatGroq(
-        model="llama-3.3-70b-specdec",
+        model="llama-3.1-8b-instant",
         api_key=api_key
     )
     # Test connection with a simple message
     test_response = llm.invoke("Test connection")
-    print("✅ LLM initialized and connection verified with llama-3.3-70b-specdec")
+    print("✅ LLM initialized and connection verified with llama-3.1-8b-instant (stable)")
 except Exception as e:
-    print(f"Failed to initialize LLM with llama-3.3-70b-specdec: {e}")
+    print(f"Failed to initialize LLM with llama-3.1-8b-instant: {e}")
     # Fallback to supported model
     try:
         llm = ChatGroq(
-            model="llama-3.1-8b-instant",
+            model="llama-3.1-70b-specdec",
             api_key=api_key
         )
         test_response = llm.invoke("Test connection")
-        print("✅ LLM initialized and connection verified with llama-3.1-8b-instant fallback")
+        print("✅ LLM initialized and connection verified with llama-3.1-70b-specdec fallback")
     except Exception as e2:
         print(f"Failed to initialize fallback LLM: {e2}")
         # Final fallback
         try:
             llm = ChatGroq(
-                model="llama-3.1-70b-specdec",
+                model="llama-3.3-70b-specdec",
                 api_key=api_key
             )
             test_response = llm.invoke("Test connection")
-            print("✅ LLM initialized and connection verified with llama-3.1-70b-specdec final fallback")
+            print("✅ LLM initialized and connection verified with llama-3.3-70b-specdec final fallback")
         except Exception as e3:
             print(f"❌ All LLM models failed: {e3}")
             sys.exit(1)
