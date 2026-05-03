@@ -23,8 +23,33 @@ repair_task = None  # Background task reference
 
 # --- CONFIGURATION ---
 IS_DEMO = os.getenv('ENV') == 'production'
-TARGET_FILE = "../complex_sandbox/app/main.py"  # Updated to complex sandbox
-COMPLEX_UTILS_FILE = "../complex_sandbox/app/utils.py"  # Added utils file
+# Use /tmp/complex_sandbox for Render's ephemeral filesystem
+TMP_SANDBOX_DIR = "/tmp/complex_sandbox"
+TARGET_FILE = os.path.join(TMP_SANDBOX_DIR, "app/main.py")
+COMPLEX_UTILS_FILE = os.path.join(TMP_SANDBOX_DIR, "app/utils.py")
+
+# Ensure sandbox directory exists
+os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
+os.makedirs(os.path.dirname(COMPLEX_UTILS_FILE), exist_ok=True)
+
+# Copy files from local complex_sandbox to /tmp if they don't exist
+if not os.path.exists(TARGET_FILE):
+    local_main = "../complex_sandbox/app/main.py"
+    if os.path.exists(local_main):
+        with open(local_main, 'r') as src:
+            content = src.read()
+        with open(TARGET_FILE, 'w') as dst:
+            dst.write(content)
+        print(f"📁 Copied main.py to {TARGET_FILE}")
+
+if not os.path.exists(COMPLEX_UTILS_FILE):
+    local_utils = "../complex_sandbox/app/utils.py"
+    if os.path.exists(local_utils):
+        with open(local_utils, 'r') as src:
+            content = src.read()
+        with open(COMPLEX_UTILS_FILE, 'w') as dst:
+            dst.write(content)
+        print(f"📁 Copied utils.py to {COMPLEX_UTILS_FILE}")
 
 # Verify files exist and log paths
 print(f"🔍 Target file path: {os.path.abspath(TARGET_FILE)}")
@@ -111,95 +136,103 @@ def get_available_files():
         return [{"name": "main.py", "path": TARGET_FILE, "type": "main"}]
 
 def inject_search_replace_bug(bug_type: str) -> str:
-    """Inject bug using search-replace approach with proper pathing"""
+    """Surgical bug injection using regex replacement with backup system"""
+    import re
+    import shutil
+    
     try:
-        # Use absolute path and ensure directory exists
-        abs_target_file = os.path.abspath(TARGET_FILE)
-        target_dir = os.path.dirname(abs_target_file)
+        # Validate target file exists
+        if not os.path.exists(TARGET_FILE):
+            return f"Target file not found: {TARGET_FILE}"
         
-        # Create directory if it doesn't exist
-        os.makedirs(target_dir, exist_ok=True)
+        # Create backup before injection
+        backup_file = f"{TARGET_FILE}.bak"
+        try:
+            shutil.copy2(TARGET_FILE, backup_file)
+            print(f"� Created backup: {backup_file}")
+        except Exception as e:
+            print(f"⚠️ Warning: Could not create backup: {e}")
         
-        # Check if file exists, if not create a backup from app.py
-        if not os.path.exists(abs_target_file):
-            app_py_path = os.path.join(os.path.dirname(abs_target_file), 'app.py')
-            if os.path.exists(app_py_path):
-                with open(app_py_path, 'r') as src:
-                    content = src.read()
-                with open(abs_target_file, 'w') as dst:
-                    dst.write(content)
-                print(f"📝 Created main.py from app.py backup")
-            else:
-                return f"Target file not found: {abs_target_file}"
+        # Read the current file content
+        with open(TARGET_FILE, 'r') as f:
+            content = f.read()
         
-        # Read the current complex main.py file
-        with open(abs_target_file, 'r') as f:
-            current_content = f.read()
-        
-        modified_content = current_content
+        original_content = content
         injection_applied = False
         
+        # Surgical injections based on bug type
         if bug_type == "index_error":
-            # Find the product validation loop and inject IndexError
-            old_code = "for i, product in enumerate(products):\n            if not product.validate():\n                validation_errors.append(f\"Product {i+1} ({product.name}) validation failed\")"
-            new_code = "for i, product in enumerate(products):\n            # IndexError injection - access product without validation\n            product_name = product.name  # This will fail if product is None\n            if not product.validate():\n                validation_errors.append(f\"Product {i+1} ({product.name}) validation failed\")"
+            # Target: Product validation loop - inject IndexError by accessing product without validation
+            pattern = r'(\s+for i, product in enumerate\(products\):\s*\n\s+if not product\.validate\(\):)'
+            replacement = r'\1# IndexError injection - access product without validation\n            product_name = product.name  # This will fail if product is None\n'
             
-            if old_code in modified_content:
-                modified_content = modified_content.replace(old_code, new_code)
+            if re.search(pattern, content):
+                content = re.sub(pattern, replacement, content)
                 injection_applied = True
                 result_msg = "Injected IndexError vulnerability - product access without validation"
         
         elif bug_type == "type_error":
-            # Find the tax calculation and inject TypeError
-            old_code = "if product.category == \"electronics\":\n                    # Complex electronics tax logic\n                    if product.price > 1000:\n                        tax_rate = 0.12  # Luxury electronics tax\n                    total += product.price * (1 + tax_rate)"
-            new_code = "if product.category == \"electronics\":\n                    # TypeError injection - wrong type assumption\n                    if product.price > 1000:\n                        tax_rate = 0.12  # Luxury electronics tax\n                    # Type error: treating price as string\n                    total += str(product.price) * (1 + tax_rate)"
+            # Target: Tax calculation - inject TypeError by string multiplication
+            pattern = r'(\s+total \+= product\.price \* \(1 \+ tax_rate\))'
+            replacement = r'# Type error: treating price as string\n            total += str(product.price) * (1 + tax_rate)'
             
-            if old_code in modified_content:
-                modified_content = modified_content.replace(old_code, new_code)
+            if re.search(pattern, content):
+                content = re.sub(pattern, replacement, content)
                 injection_applied = True
                 result_msg = "Injected TypeError vulnerability - string multiplication in tax calculation"
         
         elif bug_type == "key_error":
-            # Find the order parsing and inject KeyError
-            old_code = "product = Product(\n                product_id=item.get(\"id\"),\n                name=item.get(\"name\"),\n                price=item.get(\"price\", 0),\n                category=item.get(\"category\", \"unknown\")\n            )"
-            new_code = "product = Product(\n                product_id=item.get(\"id\"),\n                name=item.get(\"name\"),\n                price=item.get(\"price\", 0),\n                category=item.get(\"category\", \"unknown\")\n            )\n            # KeyError injection - accessing non-existent key\n            special_price = item[\"special_price\"]  # This key doesn't exist"
+            # Target: Order parsing - inject KeyError by accessing non-existent key
+            pattern = r'(\s+category=item\.get\("category", "unknown"\)\s*\))'
+            replacement = r'category=item.get("category", "unknown")\n            )\n            # KeyError injection - accessing non-existent key\n            special_price = item["special_price"]  # This key doesn\'t exist'
             
-            if old_code in modified_content:
-                modified_content = modified_content.replace(old_code, new_code)
+            if re.search(pattern, content):
+                content = re.sub(pattern, replacement, content)
                 injection_applied = True
                 result_msg = "Injected KeyError vulnerability - accessing non-existent special_price key"
         
         elif bug_type == "complex_logic_error":
-            # Find external service check and inject logic error
-            old_code = "if random.random() < 0.3:\n            self.external_service_available = False\n            return False"
-            new_code = "if random.random() < 0.3:\n            self.external_service_available = False\n            return False\n        # Complex logic error - always fail service check\n        self.external_service_available = False\n        return False"
+            # Target: External service check - inject logic error
+            pattern = r'(\s+if random\.random\(\) < 0\.3:\s*\n\s+self\.external_service_available = False\s*\n\s+return False)'
+            replacement = r'\1\n        # Complex logic error - always fail service check\n        self.external_service_available = False\n        return False'
             
-            if old_code in modified_content:
-                modified_content = modified_content.replace(old_code, new_code)
+            if re.search(pattern, content):
+                content = re.sub(pattern, replacement, content)
                 injection_applied = True
                 result_msg = "Injected complex logic error - external service always unavailable"
         
         if injection_applied:
-            # Write the modified content back with proper error handling
-            try:
-                with open(abs_target_file, 'w') as f:
-                    f.write(modified_content)
-                print(f"📝 Bug injection successful: {result_msg}")
-                return result_msg
-            except PermissionError:
-                # Try writing to /tmp directory if permission denied
-                tmp_file = os.path.join('/tmp', 'main.py')
-                with open(tmp_file, 'w') as f:
-                    f.write(modified_content)
-                print(f"📝 Bug injection written to /tmp/main.py due to permission error")
-                return f"Bug injection written to /tmp/main.py: {result_msg}"
+            # Verify the content was actually modified
+            if content == original_content:
+                raise ValueError("Injection pattern matched but content was not modified")
+            
+            # Write the modified content
+            with open(TARGET_FILE, 'w') as f:
+                f.write(content)
+            
+            print(f"� Surgical injection successful: {result_msg}")
+            return result_msg
         else:
-            return f"Bug injection failed - target code pattern not found for {bug_type}"
+            # Restore from backup if injection failed
+            if os.path.exists(backup_file):
+                shutil.copy2(backup_file, TARGET_FILE)
+                print(f"🔄 Restored from backup due to failed injection")
+            
+            return f"Bug injection failed - target pattern not found for {bug_type}"
         
     except Exception as e:
+        # Restore from backup on any error
+        backup_file = f"{TARGET_FILE}.bak"
+        if os.path.exists(backup_file):
+            try:
+                shutil.copy2(backup_file, TARGET_FILE)
+                print(f"🔄 Restored from backup due to error: {e}")
+            except Exception as restore_error:
+                print(f"❌ Critical: Could not restore from backup: {restore_error}")
+        
         error_msg = f"Bug injection failed: {str(e)}"
         print(f"❌ {error_msg}")
-        return error_msg
+        raise HTTPException(status_code=500, detail=error_msg)
 
 # --- AUDIT TRAIL FUNCTIONS ---
 def add_audit_log(message: str):

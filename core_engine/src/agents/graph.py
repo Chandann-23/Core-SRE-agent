@@ -109,31 +109,62 @@ def _extract_code_block(text: str) -> str:
     return text.strip()
 
 async def analyzer_node(state: AgentState) -> AgentState:
-    """Analyzes failing output and proposes a concrete code fix."""
-    user_prompt = (
-        "Analyze the failure and propose a fix using the exact protocol sections: "
-        "ANALYSIS, HYPOTHESIS, CODE, VERIFICATION.\n\n"
-        f"Target file: {state['target_file']}\n\n"
-        f"Error logs:\n{state['error_logs']}\n\n"
-        f"Current code:\n{state['code_context']}\n\n"
-        "In the CODE section, provide the full corrected file content wrapped in "
-        "<code>...</code> tags."
-    )
+    """Analyzes failing output and proposes a concrete code fix with deep analysis."""
     
-    print(f"🧠 [Analyzer] Thinking... (Iteration {state['iterations'] + 1})")
+    # Force at least 2 thinking iterations before proposing a fix
+    if state['iterations'] < 2:
+        print(f"🧠 [Analyzer] Deep analysis iteration {state['iterations'] + 1}/2...")
+        
+        if state['iterations'] == 0:
+            # First iteration: Analyze the error logs only
+            user_prompt = (
+                "ANALYSIS: Examine these error logs and identify the root cause.\n\n"
+                f"Target file: {state['target_file']}\n\n"
+                f"Error logs:\n{state['error_logs']}\n\n"
+                "Provide detailed analysis of what's causing the failure."
+            )
+        else:
+            # Second iteration: Analyze the code context
+            user_prompt = (
+                "HYPOTHESIS: Based on the error analysis, form a hypothesis about the fix.\n\n"
+                f"Target file: {state['target_file']}\n\n"
+                f"Error logs:\n{state['error_logs']}\n\n"
+                f"Current code:\n{state['code_context']}\n\n"
+                "Explain what you think will fix it and why."
+            )
+    else:
+        # Third iteration: Propose the actual fix
+        print(f"🧠 [Analyzer] Proposing fix (Iteration {state['iterations'] + 1})...")
+        user_prompt = (
+            "CODE: Now provide the complete fix using the exact protocol sections: "
+            "ANALYSIS, HYPOTHESIS, CODE, VERIFICATION.\n\n"
+            f"Target file: {state['target_file']}\n\n"
+            f"Error logs:\n{state['error_logs']}\n\n"
+            f"Current code:\n{state['code_context']}\n\n"
+            "In the CODE section, provide the full corrected file content wrapped in "
+            "<code>...</code> tags."
+        )
+    
     response = await llm.ainvoke(
         [SystemMessage(content=SYSTEM_PROMPT), HumanMessage(content=user_prompt)]
     )
     response_text = str(response.content)
-    fixed_code = _extract_code_block(response_text)
-
-    return {
-        "history": [
-            f"Plan from analyzer:\n{response_text}",
-            "Prepared code patch from analyzer output.",
-            f"CODE_FIX_START\n{fixed_code}\nCODE_FIX_END",
-        ]
-    }
+    
+    # Only extract code if we're in the fix iteration (3rd+)
+    if state['iterations'] >= 2:
+        fixed_code = _extract_code_block(response_text)
+        return {
+            "history": [
+                f"Plan from analyzer:\n{response_text}",
+                "Prepared code patch from analyzer output.",
+                f"CODE_FIX_START\n{fixed_code}\nCODE_FIX_END",
+            ]
+        }
+    else:
+        # For analysis iterations, just record the thinking
+        return {
+            "history": [f"Analysis iteration {state['iterations'] + 1}:\n{response_text}"]
+        }
 
 async def executor_node(state: AgentState) -> AgentState:
     """Applies the analyzer patch, reruns tests, and records status."""
@@ -163,19 +194,27 @@ async def executor_node(state: AgentState) -> AgentState:
     # Write file to sandbox
     toolbox.write_file(state["target_file"], code_to_write)
     
-    # Rerun tests
+    # Run pytest on the specific test file
+    print("🧪 [Executor] Running pytest /tmp/complex_sandbox/tests/test_app.py...")
     test_result = await toolbox.run_tests()
     refreshed_code = toolbox.read_file(state["target_file"])
 
     status_msg = "PASSED" if test_result.status == "passed" else "FAILED"
     print(f"🧪 [Executor] Test Result: {status_msg}")
+    
+    # Only log 'System restored' once tests pass
+    if test_result.status == "passed":
+        print("🎉 [Executor] System restored - All tests passed!")
+        success_log = "System restored successfully after bug fix."
+    else:
+        success_log = f"Tests failed: {test_result.stderr or test_result.stdout}"
 
     return {
         "iterations": state["iterations"] + 1,
         "code_context": refreshed_code,
         "error_logs": test_result.stdout if test_result.stdout else test_result.stderr,
         "is_fixed": test_result.status == "passed",
-        "history": [f"Executed pytest with result status={test_result.status}."],
+        "history": [f"Executed pytest /tmp/complex_sandbox/tests/test_app.py with result status={test_result.status}. {success_log}"],
     }
 
 def _route_after_executor(state: AgentState) -> Literal["analyzer_node", "__end__"]:

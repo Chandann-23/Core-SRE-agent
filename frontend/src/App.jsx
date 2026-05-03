@@ -84,6 +84,13 @@ function App() {
 
   const fetchComplexFiles = async (retryCount = 0) => {
     try {
+      // Exponential backoff: 1s, 2s, 4s
+      const delay = Math.min(1000 * Math.pow(2, retryCount), 4000);
+      if (retryCount > 0) {
+        console.log(`Retrying file fetch (${retryCount}/3) in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+      
       const res = await apiCall('get', '/files');
       if (res.data && res.data.files) {
         setAvailableFiles(res.data.files || []);
@@ -91,20 +98,29 @@ function App() {
       }
     } catch (err) {
       console.error("Failed to fetch complex files:", err);
-      // Auto-retry mechanism
-      if (retryCount < 3) {
-        console.log(`Retrying file fetch (${retryCount + 1}/3) in 5 seconds...`);
-        setTimeout(() => fetchComplexFiles(retryCount + 1), 5000);
+      
+      // Exponential backoff retry for 404/500 errors
+      if (retryCount < 3 && (err.response?.status === 404 || err.response?.status === 500)) {
+        console.log(`Retrying file fetch (${retryCount + 1}/3) with exponential backoff...`);
+        setTimeout(() => fetchComplexFiles(retryCount + 1), 1000 * Math.pow(2, retryCount));
       } else {
         // Set fallback values to prevent UI crash
-        setAvailableFiles([{"name": "main.py", "path": "../complex_sandbox/app/main.py", "type": "main"}]);
+        setAvailableFiles([{"name": "main.py", "path": "/tmp/complex_sandbox/app/main.py", "type": "main"}]);
         setCurrentFile("main.py");
+        setCode("# Error loading file content - Backend spinning up...");
       }
     }
   };
 
   const fetchComplexFileContent = async (filename = "main.py", retryCount = 0) => {
     try {
+      // Exponential backoff: 1s, 2s, 4s
+      const delay = Math.min(1000 * Math.pow(2, retryCount), 4000);
+      if (retryCount > 0) {
+        console.log(`Retrying file content fetch (${retryCount}/3) in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+      
       const res = await apiCall('get', `/file/${filename}`);
       if (res.data && res.data.content) {
         setCode(res.data.content);
@@ -113,15 +129,16 @@ function App() {
         setCode("# File content not available");
       }
     } catch (err) {
-      console.error("Failed to fetch file content:", err);
-      // Auto-retry mechanism
-      if (retryCount < 3) {
-        console.log(`Retrying file content fetch (${retryCount + 1}/3) in 5 seconds...`);
-        setTimeout(() => fetchComplexFileContent(filename, retryCount + 1), 5000);
+      console.error(`Failed to fetch ${filename}:`, err);
+      
+      // Exponential backoff retry for 404/500 errors
+      if (retryCount < 3 && (err.response?.status === 404 || err.response?.status === 500)) {
+        console.log(`Retrying file content fetch (${retryCount + 1}/3) with exponential backoff...`);
+        setTimeout(() => fetchComplexFileContent(filename, retryCount + 1), 1000 * Math.pow(2, retryCount));
       } else {
-        // Set fallback content to prevent UI crash
-        setCode("# Error loading file content - Backend may be starting up. Please wait...");
-        setCurrentFile(filename);
+        // Show loading message instead of static error
+        setCode("# Backend spinning up on Render... Please wait while the system initializes.");
+        setShowWaitingMessage(true);
       }
     }
   };
