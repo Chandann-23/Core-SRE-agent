@@ -120,13 +120,12 @@ function App() {
         // Fetch the default file content
         await fetchComplexFileContent(res.data.current_file || "main.py");
       }
-      } catch (err) {
-        console.error('Failed to fetch files:', err);
-        setAvailableFiles([
-          {name: "main.py", path: "complex_sandbox/app/main.py", type: "main"},
-          {name: "utils.py", path: "complex_sandbox/app/utils.py", type: "utils"}
-        ]);
-      }
+    } catch (err) {
+      console.error('Failed to fetch files:', err);
+      setAvailableFiles([
+        {name: "main.py", path: "complex_sandbox/app/main.py", type: "main"},
+        {name: "utils.py", path: "complex_sandbox/app/utils.py", type: "utils"}
+      ]);
     }
   };
 
