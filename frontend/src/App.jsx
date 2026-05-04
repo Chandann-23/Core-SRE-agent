@@ -54,6 +54,7 @@ const apiCall = async (method, url, data = null) => {
 const SECTION_HEADER_REGEX = /##\s*(ANALYSIS|HYPOTHESIS|CODE|VERIFICATION)\b/gi;
 
 function App() {
+  console.log('🚀 App function called');
   const [code, setCode] = useState("");
   const [history, setHistory] = useState([]);
   const [pastSessions, setPastSessions] = useState([]);
@@ -571,7 +572,6 @@ function App() {
           }
         }
       }, 180000);
-
       } catch (err) {
       console.error("Full audit failed:", err);
       setIsRunningFullAudit(false);
