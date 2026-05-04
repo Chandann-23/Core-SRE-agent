@@ -32,7 +32,7 @@ if not GLM_API_KEY:
     sys.exit(1)
 
 # Set the model configuration
-model_name = "glm-5.1"
+model_name = "glm-4"
 print(f"✅ LiteLLM initialized with {model_name} (ASTRA-style integration)")
 
 # --- STATE DEFINITION ---
@@ -402,10 +402,10 @@ async def run_autonomous_repair(target_file: str, error_logs: str, config: dict 
             Provide specific fixes for each issue found.
             """
             
-            # Use GLM-5.1 via LiteLLM for analysis
+            # Use GLM-4 via LiteLLM for analysis
             try:
                 response = completion(
-                    model="glm-5.1",
+                    model="glm-4",
                     messages=[
                         {"role": "system", "content": "You are an expert SRE agent specializing in autonomous bug detection and repair for Financial Transaction Systems."},
                         {"role": "user", "content": analysis_prompt}

@@ -439,18 +439,18 @@ async def repair_bug():
             pre_repair_code = "# Original code not available"
         
         # AUDIT LOG HANDSHAKE - Initialize with professional SRE logs during 40s delay
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 1: GLM-5.1 Neural Engine Analysis started...")
+        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 1: GLM-4 Neural Engine Analysis started...")
         
         # Node 1: Analysis (10s) - Professional SRE logs
         audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 2: Scanning Financial Module for IndexError and TypeError vulnerabilities...")
         await asyncio.sleep(2)  # First 2s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 3: GLM-5.1 model verified - ASTRA-style integration ready")
+        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 3: GLM-4 model verified - ASTRA-style integration ready")
         await asyncio.sleep(2)  # Second 2s chunk
         audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 4: Heuristic analysis of chained IndexError in payment processing...")
         await asyncio.sleep(2)  # Third 2s chunk
         audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 5: TypeError detected in calculate_tax function AND IndexError in process_payment")
         await asyncio.sleep(2)  # Fourth 2s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 6: Generating GLM-5.1 AI Patch for Transaction Logic...")
+        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 6: Generating GLM-4 AI Patch for Transaction Logic...")
         await asyncio.sleep(2)  # Fifth 2s chunk
         
         # Node 2: Actual AI Repair logic from core_logic with thread_id config
@@ -461,7 +461,7 @@ async def repair_bug():
         # Node 3: Stability Verification (30s) - More Professional SRE logs for 40s total
         audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 7: Running Regression Tests on Vercel Sandbox...")
         await asyncio.sleep(8)  # First 8s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 8: Validating financial transaction integrity with GLM-5.1...")
+        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 8: Validating financial transaction integrity with GLM-4...")
         await asyncio.sleep(8)  # Second 8s chunk
         audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 9: System stability verification complete")
         await asyncio.sleep(8)  # Third 8s chunk
