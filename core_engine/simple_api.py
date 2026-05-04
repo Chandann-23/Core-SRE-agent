@@ -11,7 +11,7 @@ import sys
 
 # --- MODULAR IMPORTS ---
 # Ensure these match the functions exported in your core_logic.py
-from core_logic import run_autonomous_repair, get_available_files
+from .core_logic import run_autonomous_repair, get_available_files
 
 load_dotenv()
 
