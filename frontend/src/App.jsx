@@ -8,7 +8,7 @@ import logo from "./assets/logo.png";
 import ReliabilityTerminal from "./components/ReliabilityTerminal";
 import SuccessModal from "./components/SuccessModal";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL || "https://chandann-23-core-sre-backend.hf.space";
 const FALLBACK_CODE = `from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -24,7 +24,7 @@ async def process_payload(payload: ProcessRequest) -> dict[str, int | None]:
     return {"first": first, "total": total}
 `;
 const axiosInstance = axios.create({
-  timeout: 60000, // 60 seconds timeout for Render cold start
+  timeout: 30000, // 30 seconds timeout for Hugging Face
   headers: {
     'Content-Type': 'application/json',
   },
@@ -44,7 +44,7 @@ const apiCall = async (method, url, data = null) => {
     return response;
   } catch (error) {
     if (error.code === 'ECONNABORTED') {
-      console.error('Request timeout - Render backend may be starting up');
+      console.error('Request timeout - Hugging Face backend may be starting up');
       throw new Error('Backend request timeout. Please try again in a moment.');
     }
     throw error;
