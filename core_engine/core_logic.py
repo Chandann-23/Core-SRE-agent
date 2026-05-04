@@ -24,8 +24,8 @@ from tools import toolbox
 # Load environment
 load_dotenv()
 
-# --- LITELLM SETUP - GLM-4 Configuration (ASTRA-style) ---
-# Configure LiteLLM to use GLM-4
+# --- LITELLM SETUP - GLM-5.1 Configuration (ASTRA-style) ---
+# Configure LiteLLM to use GLM-5.1
 ZHIPUAI_API_KEY = os.getenv("ZHIPUAI_API_KEY")
 if not ZHIPUAI_API_KEY:
     print("❌ ZHIPUAI_API_KEY not found in environment variables")
@@ -33,7 +33,7 @@ if not ZHIPUAI_API_KEY:
 
 # Set the model configuration
 model_name = "glm-4"
-print(f"✅ LiteLLM initialized with {model_name} (ASTRA-style integration)")
+print(f"✅ LiteLLM initialized with {model_name} (GLM-5.1 via ASTRA-style integration)")
 
 # --- STATE DEFINITION ---
 class AgentState(TypedDict):
