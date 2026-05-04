@@ -228,13 +228,10 @@ async def add_json_headers(request: Request, call_next):
 # --- MODELS ---
 class RepairResponse(BaseModel):
     status: str
-    iterations: int
-    history: list[str]
+    audit_logs: list[str]
+    original_code: str
     final_code: str
     mttr_time: float
-    is_fixed: bool
-    original_code: str | None = None
-    audit_logs: list[str] | None = None  # Add audit logs field
 
 class AuditLogResponse(BaseModel):
     logs: list[str]
