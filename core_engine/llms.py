@@ -2,19 +2,23 @@
 
 import os
 from dotenv import load_dotenv
-from langchain_groq import ChatGroq
+
+# Import LiteLLM for GLM-4 integration (ASTRA-style)
+import litellm
+from litellm import completion
 
 load_dotenv()
 
 def get_llm():
     """Get the LLM instance for the SRE agent."""
-    groq_api_key = os.getenv("GROQ_API_KEY")
-    if not groq_api_key:
-        raise ValueError("GROQ_API_KEY environment variable is not set")
+    zhipuai_api_key = os.getenv("ZHIPUAI_API_KEY")
+    if not zhipuai_api_key:
+        raise ValueError("ZHIPUAI_API_KEY environment variable is not set")
     
-    return ChatGroq(
-        model="glm-4",
-        api_key=groq_api_key,
-        temperature=0.1,
-        max_tokens=4000
-    )
+    # Return LiteLLM configuration for GLM-4
+    return {
+        "model": "glm-4",
+        "api_key": zhipuai_api_key,
+        "temperature": 0.1,
+        "max_tokens": 4000
+    }

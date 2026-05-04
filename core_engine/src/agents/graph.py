@@ -11,21 +11,14 @@ from pathlib import Path
 from dotenv import load_dotenv
 # Optional imports for LLM components
 try:
-    from langchain_groq import ChatGroq
-    from langchain_core.messages import HumanMessage, SystemMessage
-    from pydantic import BaseModel, Field
     from langgraph.graph import END, StateGraph
+    from pydantic import BaseModel, Field
+    from langchain_core.messages import HumanMessage, SystemMessage
     LLM_AVAILABLE = True
-except ImportError as e:
-    print(f"Warning: LLM components not available: {e}")
+except ImportError:
     print("System will run in demo mode without LLM functionality")
     LLM_AVAILABLE = False
     # Create dummy classes for demo mode
-    class ChatGroq:
-        def __init__(self, *args, **kwargs):
-            pass
-        def invoke(self, messages):
-            return "Demo mode: LLM not available"
     class HumanMessage:
         def __init__(self, content):
             self.content = content
@@ -78,11 +71,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 env_path = BASE_DIR / '.env'
 load_dotenv(dotenv_path=env_path)
 
-api_key = os.getenv("GROQ_API_KEY")
+api_key = os.getenv("ZHIPUAI_API_KEY")
 if not api_key:
     # Fallback: check if the user accidentally put it in the local core_engine folder
     load_dotenv()
-    api_key = os.getenv("GROQ_API_KEY")
+    api_key = os.getenv("ZHIPUAI_API_KEY")
 
 # --- INITIALIZATION ---
 SYSTEM_PROMPT = """You are an SRE Expert. You follow a strict Thinking Protocol:
@@ -96,11 +89,12 @@ CODE: Provide the code block.
 VERIFICATION: Describe how you will know if it's fixed."""
 
 toolbox = DockerToolbox()
-llm = ChatGroq(
-    model_name="glm-4", 
-    temperature=0,
-    api_key=api_key # Passing directly to avoid client errors
-)
+# Use LiteLLM configuration for GLM-4
+llm_config = {
+    "model": "glm-4", 
+    "temperature": 0,
+    "api_key": api_key
+}
 
 def _extract_code_block(text: str) -> str:
     """Extracts Python code wrapped in XML code tags."""
