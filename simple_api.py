@@ -229,7 +229,7 @@ async def add_json_headers(request: Request, call_next):
 class RepairResponse(BaseModel):
     success: bool
     audit_logs: list[str]
-    mttr_time: str
+    mttr_score: str
     original_code: str
     final_code: str
     events_tracked: int
@@ -482,7 +482,7 @@ async def repair_bug():
         return {
             "success": True,
             "audit_logs": audit_logs,
-            "mttr_time": mttr_formatted,
+            "mttr_score": mttr_formatted,
             "original_code": pre_repair_code,
             "final_code": post_repair_code,
             "events_tracked": len(audit_logs)
@@ -494,7 +494,7 @@ async def repair_bug():
         return {
             "success": False,
             "audit_logs": [f"[{datetime.now().strftime('%H:%M:%S')}] ❌ Repair failed: {str(e)}"],
-            "mttr_time": "00:00",
+            "mttr_score": "00:00",
             "original_code": "",
             "final_code": "",
             "events_tracked": 1
