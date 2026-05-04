@@ -1,3 +1,13 @@
+---
+title: Core Sre Backend
+emoji: 🚀
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 🚀 CORE-SRE: Autonomous Self-Healing Infrastructure
 
 **CORE-SRE** is an intelligent monitoring and recovery system designed to eliminate manual intervention during system failures. By leveraging **LangGraph** state machines and **FastAPI**, the system detects runtime failures (Chaos Engineering) in a sandboxed environment and automatically engineers code-level patches in real-time.
@@ -17,7 +27,7 @@ Validated through automated end-to-end testing:
 
 ## 🛠️ Tech Stack & Architecture
 - **AI Intelligence:** [LangGraph](https://www.langchain.com/langgraph) (Stateful Agentic Loops for Plan -> Execute -> Verify cycles).
-- **Backend:** [FastAPI](https://fastapi.tiangolo.com/) (Python) hosted on **Render**.
+- **Backend:** [FastAPI](https://fastapi.tiangolo.com/) (Python) hosted on **Hugging Face Spaces**.
 - **Frontend:** [React](https://reactjs.org/) + [Vite](https://vitejs.dev/) hosted on **Vercel**.
 - **Chaos Engineering:** Custom fault-injection layer to simulate `IndexError`, `KeyError`, and `SyntaxError`.
 - **Sandbox:** Isolated filesystem for safe AI-driven code modification.
@@ -47,12 +57,13 @@ The project includes a `sre_test.py` script that acts as a third-party auditor. 
 ---
 
 ## 🚀 Deployment Configuration
-### Backend (Render)
-- **Root Directory:** `core_engine`
-- **Start Command:** `uvicorn api:app --host 0.0.0.0 --port 10000`
+### Backend (Hugging Face Spaces)
+- **Dockerfile:** Uses Python 3.14 with port 7860
+- **Start Command:** `uvicorn simple_api:app --host 0.0.0.0 --port 7860`
+- **AI Integration:** GLM-5.1 via LiteLLM with ZHIPUAI_API_KEY
 
 ### Frontend (Vercel)
-- **VITE_API_URL:** Linked to the live Render backend for seamless data flow.
+- **VITE_API_URL:** Linked to the live Hugging Face backend for seamless data flow.
 
 ---
 
