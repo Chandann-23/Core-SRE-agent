@@ -24,11 +24,11 @@ from tools import toolbox
 # Load environment
 load_dotenv()
 
-# --- LITELLM SETUP - GLM-5.1 Configuration (ASTRA-style) ---
-# Configure LiteLLM to use GLM-5.1
-GLM_API_KEY = os.getenv("GLM_API_KEY")
-if not GLM_API_KEY:
-    print("❌ GLM_API_KEY not found in environment variables")
+# --- LITELLM SETUP - GLM-4 Configuration (ASTRA-style) ---
+# Configure LiteLLM to use GLM-4
+ZHIPUAI_API_KEY = os.getenv("ZHIPUAI_API_KEY")
+if not ZHIPUAI_API_KEY:
+    print("❌ ZHIPUAI_API_KEY not found in environment variables")
     sys.exit(1)
 
 # Set the model configuration
@@ -410,13 +410,13 @@ async def run_autonomous_repair(target_file: str, error_logs: str, config: dict 
                         {"role": "system", "content": "You are an expert SRE agent specializing in autonomous bug detection and repair for Financial Transaction Systems."},
                         {"role": "user", "content": analysis_prompt}
                     ],
-                    api_key=GLM_API_KEY
+                    api_key=ZHIPUAI_API_KEY
                 )
                 analysis_result = response.choices[0].message.content
             except Exception as e:
                 return {
                     **state,
-                    "analysis": f"GLM-5.1 analysis failed: {e}",
+                    "analysis": f"GLM-4 analysis failed: {e}",
                     "status": "error"
                 }
             

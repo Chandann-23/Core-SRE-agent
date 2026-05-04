@@ -15,14 +15,18 @@ from core_logic import run_autonomous_repair, get_available_files
 
 load_dotenv()
 
-# --- PATH RESOLUTION (FIXES RECURSIVE LOOP) ---
+# --- PATH RESOLUTION (DOCKER COMPATIBLE) ---
 # Define absolute paths using os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-# Check if we are running in core_engine subdirectory (Render) or local root
-if 'core_engine' in ROOT_DIR:
+# For Docker container, use /code as base directory
+if ROOT_DIR.startswith('/code'):
     SANDBOX_ROOT = os.path.join(ROOT_DIR, 'complex_sandbox', 'app')
 else:
-    SANDBOX_ROOT = os.path.join(ROOT_DIR, 'complex_sandbox', 'app')
+    # Local development fallback
+    if 'core_engine' in ROOT_DIR:
+        SANDBOX_ROOT = os.path.join(ROOT_DIR, 'complex_sandbox', 'app')
+    else:
+        SANDBOX_ROOT = os.path.join(ROOT_DIR, 'core_engine', 'complex_sandbox', 'app')
 
 # --- CONFIGURATION ---
 # Define frontend_url at the very top to resolve NameError
@@ -539,4 +543,4 @@ def health():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=7860)
