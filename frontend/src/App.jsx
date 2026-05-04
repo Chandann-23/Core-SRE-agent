@@ -140,7 +140,7 @@ function App() {
         await fetchComplexFiles();
         return true;
       }
-    } catch (err) {
+      } catch (err) {
       console.error(`Health check failed (attempt ${retryCount + 1}/3):`, err);
       if (retryCount < 2) {
         await checkBackendHealth(retryCount + 1);
@@ -160,7 +160,7 @@ function App() {
         // Fetch the default file content
         await fetchComplexFileContent(res.data.current_file || "main.py");
       }
-    } catch (err) {
+      } catch (err) {
       console.error('Failed to fetch files:', err);
       setAvailableFiles([
         {name: "main.py", path: "complex_sandbox/app/main.py", type: "main"},
@@ -260,7 +260,7 @@ function App() {
       } else {
         setCode("# File content not available");
       }
-    } catch (err) {
+      } catch (err) {
       console.error(`Failed to fetch ${filename}:`, err);
       
       // Exponential backoff retry for 404/500 errors
@@ -326,7 +326,7 @@ function App() {
       }
       
       setAuditLogs(newLogs);
-    } catch (err) {
+      } catch (err) {
       console.error("Failed to fetch audit logs");
     }
   };
@@ -365,7 +365,7 @@ function App() {
         clearInterval(mttrIntervalRef.current);
         mttrIntervalRef.current = null;
       }
-    } catch (err) {
+      } catch (err) {
       console.error("Error stopping MTTR timer:", err);
     }
   };
@@ -376,7 +376,7 @@ function App() {
         clearInterval(auditPollRef.current);
         auditPollRef.current = null;
       }
-    } catch (err) {
+      } catch (err) {
       console.error("Error stopping audit polling:", err);
     }
   };
@@ -476,6 +476,7 @@ function App() {
     
     // Reset timer
     const handleRunAudit = async () => {
+      try {
       // Reset all states
       setHistory([]);
       setFinalMttrTime(0);
@@ -571,7 +572,7 @@ function App() {
         }
       }, 180000);
       
-    } catch (err) {
+      } catch (err) {
       console.error("Full audit failed:", err);
       setIsRunningFullAudit(false);
       setIsTestActive(false);
@@ -672,7 +673,7 @@ function App() {
         }
       }, 180000);
       
-    } catch (err) {
+      } catch (err) {
       console.error("Full audit failed:", err);
       setIsRunningFullAudit(false);
       setIsTestActive(false);
@@ -690,7 +691,7 @@ function App() {
       if (normalized.length > 0 && selectedSessionId === null) {
         setSelectedSessionId(normalized[0].id);
       }
-    } catch (err) {
+      } catch (err) {
       console.error("Failed to fetch past sessions");
     }
   };
@@ -724,7 +725,7 @@ function App() {
           console.error("Error cleaning up status interval:", err);
         }
       };
-    } catch (err) {
+      } catch (err) {
       console.error("Status polling error:", err);
       return () => {}; // Return empty cleanup function
     }
@@ -1236,6 +1237,7 @@ function App() {
       </div>
     </div>
   );
+}
 }
 
 export default App;
