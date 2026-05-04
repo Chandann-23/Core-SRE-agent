@@ -10,7 +10,7 @@ import SuccessModal from "./components/SuccessModal";
 
 const API_BASE = import.meta.env.VITE_API_URL || "https://chandann-23-core-sre-backend.hf.space";
 const FALLBACK_CODE = `fastapi import FastAPI
-from pydantic import BaseModel
+const FALLBACK_CODE = astapi import FastAPI
 
 app = FastAPI()
 
