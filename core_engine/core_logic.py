@@ -13,10 +13,9 @@ from dotenv import load_dotenv
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 
-# Import Groq components
-from langchain_groq import ChatGroq
-from langchain_core.messages import HumanMessage, SystemMessage
-from pydantic import BaseModel, Field
+# Import LiteLLM for GLM-5.1 integration (ASTRA-style)
+import litellm
+from litellm import completion
 
 # Import core components
 from llms import get_llm
@@ -24,6 +23,17 @@ from tools import toolbox
 
 # Load environment
 load_dotenv()
+
+# --- LITELLM SETUP - GLM-5.1 Configuration (ASTRA-style) ---
+# Configure LiteLLM to use GLM-5.1
+GLM_API_KEY = os.getenv("GLM_API_KEY")
+if not GLM_API_KEY:
+    print("❌ GLM_API_KEY not found in environment variables")
+    sys.exit(1)
+
+# Set the model configuration
+model_name = "glm-5.1"
+print(f"✅ LiteLLM initialized with {model_name} (ASTRA-style integration)")
 
 # --- STATE DEFINITION ---
 class AgentState(TypedDict):
@@ -354,6 +364,75 @@ async def run_autonomous_repair(target_file: str, error_logs: str, config: dict 
         "mttr_time": None,
     }
     
+    async def analyze_code(state: AgentState) -> AgentState:
+        """Analyze code for bugs and vulnerabilities using GLM-5.1"""
+        try:
+            current_file = state.get("target_file", "")
+            if not current_file:
+                return {
+                    **state,
+                    "analysis": "No file provided for analysis",
+                    "status": "error"
+                }
+            
+            # Read the file content
+            try:
+                with open(current_file, 'r') as f:
+                    code_content = f.read()
+            except Exception as e:
+                return {
+                    **state,
+                    "analysis": f"Failed to read file: {e}",
+                    "status": "error"
+                }
+            
+            # Create analysis prompt for GLM-5.1
+            analysis_prompt = f"""
+            Analyze this Financial Transaction System code for bugs and vulnerabilities:
+            
+            {code_content}
+            
+            Focus on identifying:
+            1. IndexError in payment processing (chained vulnerability)
+            2. TypeError in calculate_tax function
+            3. Any other runtime exceptions or logic errors
+            4. Security vulnerabilities
+            5. Performance issues
+            
+            Provide specific fixes for each issue found.
+            """
+            
+            # Use GLM-5.1 via LiteLLM for analysis
+            try:
+                response = completion(
+                    model="glm-5.1",
+                    messages=[
+                        {"role": "system", "content": "You are an expert SRE agent specializing in autonomous bug detection and repair for Financial Transaction Systems."},
+                        {"role": "user", "content": analysis_prompt}
+                    ],
+                    api_key=GLM_API_KEY
+                )
+                analysis_result = response.choices[0].message.content
+            except Exception as e:
+                return {
+                    **state,
+                    "analysis": f"GLM-5.1 analysis failed: {e}",
+                    "status": "error"
+                }
+            
+            return {
+                **state,
+                "analysis": analysis_result,
+                "status": "analyzed"
+            }
+            
+        except Exception as e:
+            return {
+                **state,
+                "analysis": f"Analysis failed: {e}",
+                "status": "error"
+            }
+
     # Run the workflow with config
     try:
         result = await graph.ainvoke(initial_state, config)
