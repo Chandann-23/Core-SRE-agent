@@ -422,6 +422,24 @@ async def repair_bug():
         # Initialize audit_logs list at the very top
         audit_logs = []
         
+        # Create a test file if it doesn't exist for demo purposes
+        if not os.path.exists(target_file):
+            os.makedirs(os.path.dirname(target_file), exist_ok=True)
+            with open(target_file, 'w') as f:
+                f.write('''# Financial Transaction System - Original Code
+def calculate_tax(amount, rate):
+    return amount * rate
+
+def process_payment(payment_data):
+    # IndexError vulnerability: no bounds checking
+    total = payment_data[0] + payment_data[5]  # May cause IndexError
+    tax = calculate_tax(total, 0.1)
+    return {"total": total, "tax": tax}
+
+# This code has intentional vulnerabilities for demo
+''')
+            audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Created test file with vulnerabilities for demo")
+        
         # Capture pre_repair_code BEFORE any modifications
         pre_repair_code = ""
         try:
