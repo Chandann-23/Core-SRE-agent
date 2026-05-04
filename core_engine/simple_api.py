@@ -213,15 +213,6 @@ def helper_function():
 # Create default files on startup
 create_default_files()
 
-# --- CORS ---
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://core-sre-engine.vercel.app"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # Add JSON response headers middleware
 @app.middleware("http")
 async def add_json_headers(request: Request, call_next):

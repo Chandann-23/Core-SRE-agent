@@ -97,7 +97,7 @@ VERIFICATION: Describe how you will know if it's fixed."""
 
 toolbox = DockerToolbox()
 llm = ChatGroq(
-    model_name="glm-5.1", 
+    model_name="glm-4", 
     temperature=0,
     api_key=api_key # Passing directly to avoid client errors
 )
