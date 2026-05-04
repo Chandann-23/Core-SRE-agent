@@ -5,7 +5,7 @@ import re
 import os
 import sys
 import time
-from typing import Literal, Dict, Any
+from typing import Literal, Dict, Any, TypedDict, List, Annotated
 from pathlib import Path
 from dotenv import load_dotenv
 
