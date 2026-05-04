@@ -227,11 +227,12 @@ async def add_json_headers(request: Request, call_next):
 
 # --- MODELS ---
 class RepairResponse(BaseModel):
-    status: str
+    success: bool
     audit_logs: list[str]
+    mttr_time: str
     original_code: str
     final_code: str
-    mttr_time: float
+    events_tracked: int
 
 class AuditLogResponse(BaseModel):
     logs: list[str]
@@ -472,24 +473,31 @@ async def repair_bug():
         elapsed = round(time.time() - start_time, 2)
         audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] 📈 Autonomous repair completed - MTTR: {elapsed:.2f}s")
         
+        # Format MTTR time as MM:SS string
+        minutes = int(elapsed // 60)
+        seconds = int(elapsed % 60)
+        mttr_formatted = f"{minutes:02d}:{seconds:02d}"
+        
         # Return exact JSON structure with consistent key names
         return {
-            "status": "success",
+            "success": True,
             "audit_logs": audit_logs,
+            "mttr_time": mttr_formatted,
             "original_code": pre_repair_code,
             "final_code": post_repair_code,
-            "mttr_time": round(elapsed, 2)
+            "events_tracked": len(audit_logs)
         }
         
     except Exception as e:
         # Ensure we always return valid JSON even on error
         print(f"❌ Repair endpoint error: {e}")
         return {
-            "status": "failed",
+            "success": False,
             "audit_logs": [f"[{datetime.now().strftime('%H:%M:%S')}] ❌ Repair failed: {str(e)}"],
+            "mttr_time": "00:00",
             "original_code": "",
             "final_code": "",
-            "mttr_time": 0.0
+            "events_tracked": 1
         }
 
 @app.get("/audit-logs", response_model=AuditLogResponse)
