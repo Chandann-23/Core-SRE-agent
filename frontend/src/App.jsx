@@ -571,7 +571,7 @@ function App() {
           }
         }
       }, 180000);
-      
+
       } catch (err) {
       console.error("Full audit failed:", err);
       setIsRunningFullAudit(false);
@@ -673,8 +673,8 @@ function App() {
         }
       }, 180000);
       
-      } catch (err) {
-      console.error("Full audit failed:", err);
+      } catch (err) {      }
+
       setIsRunningFullAudit(false);
       setIsTestActive(false);
       stopAuditPolling();
@@ -1238,6 +1238,6 @@ function App() {
     </div>
   );
 }
-}
+
 
 export default App;
