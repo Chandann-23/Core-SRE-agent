@@ -475,37 +475,110 @@ function App() {
     setShowSuccessModal(false);
     
     // Reset timer
-    setMttrTime(0);
-    setMttrStartTime(null);
-    setFinalMttrTime(0);
-    
-    // Clear logs for clean start
-    setAuditLogs([]);
-    const accurateMttr = calculateMttrFromLogs();
-    setFinalMttrTime(accurateMttr);
-    setShowSuccessModal(true);
-    console.log('🔄 Current showSuccessModal state:', showSuccessModal);
-    
-    // Close the modal
-    setShowSuccessModal(false);
-    console.log('🔄 showSuccessModal set to false');
-    
-    // Reset all related states for fresh start
-    setIsTestActive(false);
-    setIsRunningFullAudit(false);
-    setSystemStatus('Healthy');
-    setShowWaitingMessage(false);
-    
-    // Reset timer completely
-    setMttrTime(0);
-    setMttrStartTime(null);
-    setFinalMttrTime(0);
-    
-    // Stop any running processes
-    stopAuditPolling();
-    stopMttrTimer();
-    
-    console.log('🔄 All states reset successfully');
+    const handleRunAudit = async () => {
+      // Reset all states
+      setHistory([]);
+      setFinalMttrTime(0);
+      
+      // Clear logs for clean start
+      setAuditLogs([
+        "[00:00] 🚀 Starting autonomous repair process...",
+        "[00:01] 🔍 Initializing SRE audit pipeline...",
+        "[00:02] 🧠 Connecting to GLM-5.1 neural engine..."
+      ]);
+      
+      const accurateMttr = calculateMttrFromLogs();
+      setFinalMttrTime(accurateMttr);
+      setShowSuccessModal(true);
+      console.log('🔄 Current showSuccessModal state:', showSuccessModal);
+      
+      // Close the modal
+      setShowSuccessModal(false);
+      console.log('🔄 showSuccessModal set to false');
+      
+      // Reset all related states for fresh start
+      setIsTestActive(false);
+      setIsRunningFullAudit(false);
+      setSystemStatus('Healthy');
+      setShowWaitingMessage(false);
+      
+      // Reset timer completely
+      setMttrTime(0);
+      setMttrStartTime(null);
+      setFinalMttrTime(0);
+      
+      // Stop any running processes
+      stopAuditPolling();
+      stopMttrTimer();
+      
+      // Clear audit logs from backend
+      try {
+        await axios.delete(`${API_BASE}/audit-logs`);
+      } catch (err) {
+        console.error('Failed to clear logs:', err);
+      }
+      
+      // Step 2: Call /inject-bug
+      setStatus("VULNERABLE");
+      setShowDiff(false);
+      await axios.post(`${API_BASE}/inject-bug`);
+      
+      // Step 3: Start MTTR timer
+      startMttrTimer();
+      setIsTestActive(true);
+      setShowWaitingMessage(false);
+      
+      // Step 4: Call /repair
+      await axios.post(`${API_BASE}/repair`);
+      
+      // Step 5: Start audit polling
+      startAuditPolling();
+      
+      // Step 6: Refresh code display after repair starts
+      const pollInterval = setInterval(async () => {
+        await fetchComplexFileContent(currentFile);
+        await fetchAuditLogs();
+        
+        // IMMEDIATE SUCCESS DETECTION - Check logs first (they're faster)
+        const logsIndicateSuccess = checkForSuccessInLogs();
+        
+        if (logsIndicateSuccess) {
+          console.log('🎯 Success detected via status endpoint');
+          return;
+        }
+      }, 1000);
+      
+      // Timeout after 3 minutes (180 seconds) - subtle warning instead of interruptive alert
+      setTimeout(() => {
+        // Only show warning if we haven't already detected success
+        if (isTestActive) {
+          clearInterval(pollInterval);
+          stopAuditPolling();
+          stopMttrTimer();
+          setIsTestActive(false);
+          setIsRunningFullAudit(false);
+          setShowWaitingMessage(true);
+          
+          // Check one last time for success in logs
+          const successInLogs = checkForSuccessInLogs();
+          
+          if (successInLogs) {
+            console.log('🎯 Success detected via audit logs during timeout check');
+            handleSuccessDetected();
+          } else {
+            console.log('⏱️ 3 minutes reached - showing subtle waiting message');
+          }
+        }
+      }, 180000);
+      
+    } catch (err) {
+      console.error("Full audit failed:", err);
+      setIsRunningFullAudit(false);
+      setIsTestActive(false);
+      stopAuditPolling();
+      stopMttrTimer();
+      // No alert - just reset state for demo continuity
+    }
   };
 
   const onSelectSession = (session) => {
