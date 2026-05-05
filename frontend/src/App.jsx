@@ -10,7 +10,6 @@ import SuccessModal from "./components/SuccessModal";
 
 const API_BASE = import.meta.env.VITE_API_URL || "https://chandann-23-core-sre-backend.hf.space";
 const FALLBACK_CODE = `fastapi import FastAPI
-const FALLBACK_CODE = astapi import FastAPI
 
 app = FastAPI()
 
@@ -474,10 +473,10 @@ function App() {
     setSystemStatus('Healthy');
     setShowWaitingMessage(false);
     setShowSuccessModal(false);
-    
-    // Reset timer
-    const handleRunAudit = async () => {
-      try {
+  };
+
+  const handleRunAudit = async () => {
+    try {
       // Reset all states
       setHistory([]);
       setFinalMttrTime(0);
@@ -1237,6 +1236,5 @@ function App() {
       </div>
     </div>
   );
-}
 }
 export default App;
