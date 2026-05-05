@@ -66,8 +66,3 @@ The project includes a `sre_test.py` script that acts as a third-party auditor. 
 - **VITE_API_URL:** Linked to the live Hugging Face backend for seamless data flow.
 
 ---
-
-## 👨‍💻 Developed By
-**Undergraduate Engineering Student**
-*Presidency University, Bengaluru*  
-*Specialization: Artificial Intelligence & Machine Learning*
