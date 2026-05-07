@@ -1265,17 +1265,19 @@ const calculateAccurateMttr = (startTime, endTime) => {
             </div>
           </section>
           
-          <ReliabilityTerminal
-            isOpen={isTerminalOpen}
-            auditLogs={auditLogs}
-            isTestActive={isTestActive}
-            mttrTime={mttrTime}
-            systemStatus={systemStatus}
-            formatTime={formatTime}
-            showWaitingMessage={showWaitingMessage}
-            onToggle={() => setIsTerminalOpen(!isTerminalOpen)}
-            onResetTimer={handleResetTimer}
-          />
+          <div className="fixed bottom-0 left-0 right-0 z-40">
+            <ReliabilityTerminal
+              isOpen={isTerminalOpen}
+              auditLogs={auditLogs}
+              isTestActive={isTestActive}
+              mttrTime={mttrTime}
+              systemStatus={systemStatus}
+              formatTime={formatTime}
+              showWaitingMessage={showWaitingMessage}
+              onToggle={() => setIsTerminalOpen(!isTerminalOpen)}
+              onResetTimer={handleResetTimer}
+            />
+          </div>
           
           <SuccessModal
             isOpen={showSuccessModal}
