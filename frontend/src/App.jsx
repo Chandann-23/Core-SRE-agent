@@ -1290,7 +1290,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
       </div>
       
       {/* Debug UI - URL Indicator */}
-      <div className="fixed bottom-4 right-4 bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-400 max-w-xs">
+      <div className="fixed bottom-20 right-4 z-50 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-lg p-2 text-xs text-slate-400 max-w-xs shadow-[0_8px_32px_0_rgba(0,0,0,0.8)]">
         <div className="flex items-center space-x-2">
           <div className={`w-2 h-2 rounded-full ${backendStatus.includes('Verified') ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`}></div>
           <div>
