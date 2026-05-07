@@ -500,7 +500,8 @@ const calculateAccurateMttr = (startTime, endTime) => {
       
       // Step 2: Call /inject-bug
       // Capture current clean code before bug injection
-      setOldCode(code || FALLBACK_CODE);
+      const currentCleanCode = code || FALLBACK_CODE;
+      setOldCode(currentCleanCode);
       setStatus("VULNERABLE");
       setShowDiff(false);
       
@@ -614,9 +615,13 @@ const calculateAccurateMttr = (startTime, endTime) => {
       
       // Step 2: Call /inject-bug
       // Capture current clean code before bug injection
-      setOldCode(code || FALLBACK_CODE);
+      const currentCleanCode = code || FALLBACK_CODE;
+      setOldCode(currentCleanCode);
       setStatus("VULNERABLE");
       setShowDiff(false);
+      
+      setHistory(prev => [...prev, "$ Capturing clean code for diff comparison..."]);
+      
       await axios.post(`${API_BASE}/inject-bug`);
       
       // Step 3: Start MTTR timer
