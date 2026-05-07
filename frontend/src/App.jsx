@@ -139,7 +139,7 @@ function App() {
         await fetchComplexFiles();
         return true;
       }
-      } catch (err) {
+    } catch (err) {
       console.error(`Health check failed (attempt ${retryCount + 1}/3):`, err);
       if (retryCount < 2) {
         await checkBackendHealth(retryCount + 1);
@@ -159,7 +159,7 @@ function App() {
         // Fetch the default file content
         await fetchComplexFileContent(res.data.current_file || "main.py");
       }
-      } catch (err) {
+    } catch (err) {
       console.error('Failed to fetch files:', err);
       setAvailableFiles([
         {name: "main.py", path: "complex_sandbox/app/main.py", type: "main"},
@@ -259,7 +259,7 @@ function App() {
       } else {
         setCode("# File content not available");
       }
-      } catch (err) {
+    } catch (err) {
       console.error(`Failed to fetch ${filename}:`, err);
       
       // Exponential backoff retry for 404/500 errors
@@ -330,7 +330,7 @@ function App() {
       }
       
       setAuditLogs(newLogs);
-      } catch (err) {
+    } catch (err) {
       console.error("Failed to fetch audit logs");
     }
   };
@@ -369,7 +369,7 @@ function App() {
         clearInterval(mttrIntervalRef.current);
         mttrIntervalRef.current = null;
       }
-      } catch (err) {
+    } catch (err) {
       console.error("Error stopping MTTR timer:", err);
     }
   };
@@ -380,7 +380,7 @@ function App() {
         clearInterval(auditPollRef.current);
         auditPollRef.current = null;
       }
-      } catch (err) {
+    } catch (err) {
       console.error("Error stopping audit polling:", err);
     }
   };
@@ -524,8 +524,48 @@ function App() {
       // Step 4: Call /repair
       await axios.post(`${API_BASE}/repair`);
       
-      // Step 5: Start audit polling
-      startAuditPolling();
+      // Step 5: Start real-time log streaming
+const eventSource = new EventSource(`${API_BASE}/stream-logs`);
+
+eventSource.onmessage = (event) => {
+  try {
+    const data = JSON.parse(event.data);
+    
+    // APPEND the new log instead of replacing the whole list
+    if (data.log) {
+      setAuditLogs((prevLogs) => [...prevLogs, data.log]);
+      
+      // Check for success in real-time logs
+      if (data.log.includes('System restored to healthy state') || data.log.includes('📈 Autonomous repair completed')) {
+        console.log('🎯 SUCCESS DETECTED IN REAL-TIME STREAM - Force stopping everything!');
+        
+        // Force stop everything immediately
+        eventSource.close();
+        stopMttrTimer();
+        
+        // Force set states
+        setIsTestActive(false);
+        setIsRunningFullAudit(false);
+        setSystemStatus('Healthy');
+        setShowWaitingMessage(false);
+        
+        // Trigger success immediately with accurate MTTR
+        const accurateMttr = calculateMttrFromLogs();
+        setFinalMttrTime(accurateMttr);
+        setShowSuccessModal(true);
+      }
+    }
+  } catch (err) {
+    console.error('Error parsing SSE data:', err);
+  }
+};
+
+eventSource.onerror = (err) => {
+  console.error("SSE Connection failed:", err);
+  eventSource.close();
+  // Fallback to polling if SSE fails
+  startAuditPolling();
+};
       
       // Step 6: Refresh code display after repair starts
       const pollInterval = setInterval(async () => {
@@ -671,7 +711,7 @@ function App() {
         }
       }, 180000);
       
-      } catch (err) {
+    } catch (err) {
       console.error('Full audit failed:', err);
       setIsRunningFullAudit(false);
       setIsTestActive(false);
@@ -689,7 +729,7 @@ function App() {
       if (normalized.length > 0 && selectedSessionId === null) {
         setSelectedSessionId(normalized[0].id);
       }
-      } catch (err) {
+    } catch (err) {
       console.error("Failed to fetch past sessions");
     }
   };
@@ -723,7 +763,7 @@ function App() {
           console.error("Error cleaning up status interval:", err);
         }
       };
-      } catch (err) {
+    } catch (err) {
       console.error("Status polling error:", err);
       return () => {}; // Return empty cleanup function
     }
@@ -735,18 +775,48 @@ function App() {
     } else if (isRepairing) {
       document.title = "🛠️ Repairing... | CORE SRE";
     } else {
-      document.title = "CORE SRE | Autonomous Recovery";
+      document.title = "CORE SRE | Autonomous Recovery System";
     }
-  }, [isTestActive, isRepairing]);
+    
+    // Step 5: Start real-time log streaming
+    const eventSource = new EventSource(`${API_BASE}/stream-logs`);
 
-  useEffect(() => {
-    lastLogRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [history, isRepairing]);
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.log) {
+          setAuditLogs((prevLogs) => [...prevLogs, data.log]);
+          
+          if (data.log.includes('System restored to healthy state') || data.log.includes('📈 Autonomous repair completed')) {
+            console.log('🎯 SUCCESS DETECTED IN REAL-TIME STREAM - Force stopping everything!');
+            eventSource.close();
+            stopMttrTimer();
+            setIsTestActive(false);
+            setIsRunningFullAudit(false);
+            setSystemStatus('Healthy');
+            setShowWaitingMessage(false);
+            const accurateMttr = calculateMttrFromLogs();
+            setFinalMttrTime(accurateMttr);
+            setShowSuccessModal(true);
+          }
+        }
+      } catch (err) {
+        console.error('Error parsing SSE data:', err);
+      }
+    };
 
-  // Cleanup intervals on unmount
-  useEffect(() => {
+    eventSource.onerror = (err) => {
+      console.error("SSE Connection failed:", err);
+      eventSource.close();
+      startAuditPolling();
+    };
+
+    // Cleanup function
     return () => {
-      stopAuditPolling();
+      if (eventSource) {
+        eventSource.close();
+      }
       if (mttrIntervalRef.current) {
         clearInterval(mttrIntervalRef.current);
       }
@@ -759,7 +829,7 @@ function App() {
         filePollRef.current = null;
       }
     };
-  }, []);
+  }, [isTestActive, isRepairing]);
 
   const handleAction = async (type) => {
     if (type === "inject") {
