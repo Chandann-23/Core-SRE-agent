@@ -1040,7 +1040,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                     <div className="flex items-center gap-2 text-slate-200">
                       <ChevronDown size={14} />
                       <FolderOpen size={14} />
-                      <span>complex_sandbox</span>
+                      <span className="bg-gradient-to-r from-purple-400 to-violet-600 bg-clip-text text-transparent">complex_sandbox</span>
                     </div>
                     {AVAILABLE_FILES.map((file) => (
                       <div
@@ -1062,25 +1062,25 @@ const calculateAccurateMttr = (startTime, endTime) => {
                     <div className="flex items-center gap-2 text-slate-200">
                       <ChevronDown size={14} />
                       <FolderOpen size={14} />
-                      <span>complex_sandbox</span>
+                      <span className="bg-gradient-to-r from-purple-400 to-violet-600 bg-clip-text text-transparent">complex_sandbox</span>
                     </div>
                     <div className="ml-5 flex items-center gap-2 text-slate-300">
                       <ChevronRight size={14} className="opacity-0" />
                       <Folder size={14} />
-                      <span>app</span>
+                      <span className="bg-gradient-to-r from-purple-400 to-violet-600 bg-clip-text text-transparent">app</span>
                     </div>
                     <div className="ml-11 flex items-center gap-2 rounded bg-slate-900/60 px-2 py-1 text-slate-100">
                       <FileCode size={14} />
-                      <span>main.py</span>
+                      <span className="bg-gradient-to-r from-purple-400 to-violet-600 bg-clip-text text-transparent">main.py</span>
                     </div>
                     <div className="ml-5 flex items-center gap-2 text-slate-300">
                       <ChevronRight size={14} className="opacity-0" />
                       <Folder size={14} />
-                      <span>tests</span>
+                      <span className="bg-gradient-to-r from-purple-400 to-violet-600 bg-clip-text text-transparent">tests</span>
                     </div>
                     <div className="ml-11 flex items-center gap-2 px-2 py-1 text-slate-400">
                       <FileCode size={14} />
-                      <span>test_app.py</span>
+                      <span className="bg-gradient-to-r from-purple-400 to-violet-600 bg-clip-text text-transparent">test_app.py</span>
                     </div>
                   </div>
                 )}
