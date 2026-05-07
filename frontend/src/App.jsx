@@ -332,9 +332,10 @@ const calculateAccurateMttr = (startTime, endTime) => {
       if (newLogs.some(log => log.includes('System restored to healthy state'))) {
         console.log('🎯 SUCCESS DETECTED IN LOGS - Force stopping everything!');
         
-        // Force stop everything immediately
+        // Force stop everything immediately and get final MTTR
         stopAuditPolling();
-        stopMttrTimer();
+        const finalTime = stopMttrTimer();
+        setImmediateMttrTime(finalTime);
         
         // Force set states
         setIsTestActive(false);
