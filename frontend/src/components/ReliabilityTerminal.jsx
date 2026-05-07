@@ -110,7 +110,7 @@ const ReliabilityTerminal = ({
       </div>
 
       <div className="p-4">
-        <div className="bg-black border border-purple-400/30 p-4 font-mono text-sm">
+        <div className="bg-black border border-purple-400/30 p-4 text-sm" style={{fontFamily: '"Consolas", "Monaco", "Courier New", monospace'}}>
           <div className="mb-3 text-purple-300 text-xs font-bold">
             $ CORE SRE Reliability Audit Trail
             {isTestActive && (
@@ -132,9 +132,9 @@ const ReliabilityTerminal = ({
               auditLogs.map((log, index) => (
                 <div
                   key={index}
-                  className="text-purple-300 text-xs leading-relaxed font-mono"
+                  className="text-purple-300 text-xs leading-relaxed" style={{fontFamily: '"Consolas", "Monaco", "Courier New", monospace'}}
                 >
-                  <span className="text-purple-400 font-mono">{log.split(']')[0]}]</span>
+                  <span className="text-purple-400" style={{fontFamily: '"Consolas", "Monaco", "Courier New", monospace'}}>{log.split(']')[0]}]</span>
                   <span className={`ml-2 ${index === auditLogs.length - 1 ? 'text-purple-200 font-semibold' : 'text-purple-300'}`}>
                     {log.split(']').slice(1).join(']')}
                   </span>
@@ -148,7 +148,7 @@ const ReliabilityTerminal = ({
             <div className="mt-3 pt-3 border-t border-purple-400/30">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
-                <span className="text-purple-300 text-xs font-mono">
+                <span className="text-purple-300 text-xs" style={{fontFamily: '"Consolas", "Monaco", "Courier New", monospace'}}>
                   Real-time monitoring active...
                 </span>
               </div>
