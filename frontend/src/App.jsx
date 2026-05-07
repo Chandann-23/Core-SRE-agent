@@ -1013,7 +1013,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                 type="button"
                 onClick={() => handleAction("inject")}
                 disabled={isTestActive}
-                className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-transparent px-3 py-1.5 text-xs text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300 active:scale-95"
+                className="inline-flex items-center gap-2 rounded-md border border-purple-400 bg-transparent px-3 py-1.5 text-xs text-purple-400 hover:bg-purple-400/20 disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300 active:scale-95"
               >
                 <Bug size={14} />
                 Inject Bug
@@ -1022,7 +1022,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                 type="button"
                 onClick={() => handleAction("repair")}
                 disabled={isRepairing || isTestActive}
-                className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-transparent px-3 py-1.5 text-xs text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300 active:scale-95"
+                className="inline-flex items-center gap-2 rounded-md border border-purple-400 bg-transparent px-3 py-1.5 text-xs text-purple-400 hover:bg-purple-400/20 disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300 active:scale-95"
               >
                 {isRepairing ? <Activity size={14} className="animate-spin" /> : <Wrench size={14} />}
                 Repair
@@ -1040,7 +1040,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                     <div className="flex items-center gap-2 text-slate-200">
                       <ChevronDown size={14} />
                       <FolderOpen size={14} />
-                      <span className="bg-gradient-to-r from-purple-400 to-violet-600 bg-clip-text text-transparent">complex_sandbox</span>
+                      <span className="text-purple-400">complex_sandbox</span>
                     </div>
                     {AVAILABLE_FILES.map((file) => (
                       <div
@@ -1062,7 +1062,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                     <div className="flex items-center gap-2 text-slate-200">
                       <ChevronDown size={14} />
                       <FolderOpen size={14} />
-                      <span className="bg-gradient-to-r from-purple-400 to-violet-600 bg-clip-text text-transparent">complex_sandbox</span>
+                      <span className="text-purple-400">complex_sandbox</span>
                     </div>
                     <div className="ml-5 flex items-center gap-2 text-slate-300">
                       <ChevronRight size={14} className="opacity-0" />
@@ -1071,16 +1071,25 @@ const calculateAccurateMttr = (startTime, endTime) => {
                     </div>
                     <div className="ml-11 flex items-center gap-2 rounded bg-slate-900/60 px-2 py-1 text-slate-100">
                       <FileCode size={14} />
-                      <span className="bg-gradient-to-r from-purple-400 to-violet-600 bg-clip-text text-transparent">main.py</span>
+                      <span className="text-purple-400">main.py</span>
                     </div>
                     <div className="ml-5 flex items-center gap-2 text-slate-300">
                       <ChevronRight size={14} className="opacity-0" />
                       <Folder size={14} />
-                      <span className="bg-gradient-to-r from-purple-400 to-violet-600 bg-clip-text text-transparent">tests</span>
+                      <span className="text-purple-400">tests</span>
                     </div>
                     <div className="ml-11 flex items-center gap-2 px-2 py-1 text-slate-400">
                       <FileCode size={14} />
-                      <span className="bg-gradient-to-r from-purple-400 to-violet-600 bg-clip-text text-transparent">test_app.py</span>
+                      <span className="text-purple-400">test_app.py</span>
+                    </div>
+                    <div className="ml-5 flex items-center gap-2 text-slate-300">
+                      <ChevronRight size={14} className="opacity-0" />
+                      <Folder size={14} />
+                      <span className="text-purple-400">utils</span>
+                    </div>
+                    <div className="ml-11 flex items-center gap-2 px-2 py-1 text-slate-400">
+                      <FileCode size={14} />
+                      <span className="text-purple-400">utils.py</span>
                     </div>
                   </div>
                 )}
