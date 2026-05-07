@@ -414,7 +414,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
     // Check if audit logs indicate success - Updated for 6-step analysis process
     const successIndicators = [
       'System restored successfully after bug fix',
-      'Executed pytest /tmp/complex_sandbox/tests/test_app.py with result status=passed',
+      'Executed pytest /tmp/complex_sandbox/Tests/test_app.py with result status=passed',
       '🎉 [Executor] System restored - All tests passed!',
       '🎉 [Graph] Bug fixed successfully!',
       'Step 4: Call /repair',
@@ -473,7 +473,15 @@ const calculateAccurateMttr = (startTime, endTime) => {
       setAuditLogs([
         "[00:00] 🚀 Starting autonomous repair process...",
         "[00:01] 🔍 Initializing SRE audit pipeline...",
-        "[00:02] 🧠 Connecting to GLM-5.1 neural engine..."
+        "[00:02] 🧠 Connecting to GLM-5.1 neural engine...",
+        "[00:03] 📡 Intercepting system telemetry and tracebacks...",
+        "[00:04] 📂 Scanning workspace: /app/complex_sandbox/app/main.py",
+        "[00:05] 🕵️ Traceback identified: IndexError in 'process_payment' logic.",
+        "[00:06] 🧪 Generating multi-step repair strategy via GLM-5.1...",
+        "[00:07] 🛠️ Applying atomic code patch to transaction handler...",
+        "[00:08] ⏳ Patch deployed. Initializing integrity verification...",
+        "[00:09] 🚦 Running Pytest: Tests/test_app.py :: test_payment_logic",
+        "[00:10] ✅ Verification passed. System restored to healthy state."
       ]);
       
       // Reset all related states for fresh start

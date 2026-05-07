@@ -8,61 +8,66 @@ app_port: 7860
 pinned: false
 ---
 
-# 🚀 CORE-SRE: Autonomous Self-Healing Infrastructure
+# CORE SRE: Autonomous Recovery Engine
 
-**CORE-SRE** is an intelligent monitoring and recovery system designed to eliminate manual intervention during system failures. By leveraging **LangGraph** state machines and **FastAPI**, the system detects runtime failures (Chaos Engineering) in a sandboxed environment and automatically engineers code-level patches in real-time.
-
-**🔗 Live Dashboard:** [https://core-sre-engine.vercel.app/](https://core-sre-engine.vercel.app/)
+**CORE SRE** is a production-grade Site Reliability Engineering (SRE) agent designed to autonomously detect, analyze, and repair system vulnerabilities within a sandboxed environment. By leveraging the power of **GLM-5.1** and **LangGraph**, the system moves beyond simple monitoring to active, code-level remediation.
 
 ---
 
-## 📊 Industry-Standard Reliability Metrics
-Validated through automated end-to-end testing:
+## 🚀 Overview
 
-- **MTTR (Mean Time To Repair):** ~122 Seconds (Fully Autonomous)
-- **Recovery Success Rate:** 100% for standard runtime exceptions.
-- **Observability:** Real-time health polling with < 5s latency.
+In modern distributed systems, Mean Time To Repair (MTTR) is the most critical metric. **CORE SRE** minimizes this by automating the entire incident response lifecycle:
 
----
-
-## 🛠️ Tech Stack & Architecture
-- **AI Intelligence:** [LangGraph](https://www.langchain.com/langgraph) (Stateful Agentic Loops for Plan -> Execute -> Verify cycles).
-- **Backend:** [FastAPI](https://fastapi.tiangolo.com/) (Python) hosted on **Hugging Face Spaces**.
-- **Frontend:** [React](https://reactjs.org/) + [Vite](https://vitejs.dev/) hosted on **Vercel**.
-- **Chaos Engineering:** Custom fault-injection layer to simulate `IndexError`, `KeyError`, and `SyntaxError`.
-- **Sandbox:** Isolated filesystem for safe AI-driven code modification.
+*   **Detection**: Constant monitoring of system telemetry and tracebacks.
+*   **Injection**: Capability to simulate realistic vulnerabilities (e.g., `IndexError`, `TypeError`) for testing and validation.
+*   **Analysis**: Utilizes a specialized AI brain to perform deep dependency scanning and root-cause analysis.
+*   **Repair**: Generates and applies atomic code patches to the source files.
+*   **Verification**: Automatically triggers **Pytest** suites to ensure the patch is sound before declaring the system "Healthy".
 
 ---
 
-## 📂 System Workflow
-The system follows a professional SRE lifecycle:
+## 🛠️ Technical Stack
 
-1. **Failure Injection:** Automated suites inject "bugs" into the production-mirrored sandbox.
-2. **Detection:** The monitoring layer detects a status shift from `Healthy` to `Error`.
-3. **Autonomous Repair:** 
-   - The **LangGraph Agent** reads the traceback.
-   - It identifies the root cause using LLM-driven analysis.
-   - It rewrites the failing module within the sandbox.
-4. **Verification:** The agent validates the fix; if successful, the system returns to `Healthy` state.
+*   **Brain**: GLM-5.1 Neural Engine & LangGraph for agentic workflows.
+*   **Backend**: FastAPI (Python 3.10) hosted on Hugging Face Spaces.
+*   **Frontend**: Next.js & React with a custom **Astra-inspired Glassmorphism** UI.
+*   **Infrastructure**: Sandboxed execution environment for safe code manipulation.
+*   **Styling**: Tailwind CSS with a strict "Obsidian & Amethyst" professional palette.
 
 ---
 
-## 🧪 Automated Testing Suite
-The project includes a `sre_test.py` script that acts as a third-party auditor. It performs the following:
-- Triggers a bug injection via API.
-- Starts a high-resolution timer.
-- Polls the `/status` endpoint until recovery is detected.
-- Generates a **Reliability Test Report** with precise downtime calculations.
+## 📁 Project Structure
+
+*   `frontend/`: Next.js application featuring real-time audit trails and VS Code-style IDE integration.
+*   `tests/`: Comprehensive Python test suite for system verification and MTTR accuracy.
+*   `core_logic.py`: The heart of the SRE agent, managing the LangGraph repair cycles.
+*   `simple_api.py`: FastAPI endpoints for bug injection, repair triggers, and live log streaming.
 
 ---
 
-## 🚀 Deployment Configuration
-### Backend (Hugging Face Spaces)
-- **Dockerfile:** Uses Python 3.14 with port 7860
-- **Start Command:** `uvicorn simple_api:app --host 0.0.0.0 --port 7860`
-- **AI Integration:** GLM-5.1 via LiteLLM with ZHIPUAI_API_KEY
+## 📊 Key Features
 
-### Frontend (Vercel)
-- **VITE_API_URL:** Linked to the live Hugging Face backend for seamless data flow.
+*   **Real-time Audit Trail**: A live terminal feed that streams agent thoughts and actions as they happen.
+*   **Automated MTTR Tracking**: Precise calculation of recovery time, displayed in a professional dashboard interface.
+*   **Functional Diff Viewer**: High-contrast, code-level comparison of the "Buggy" vs. "Repaired" states.
+*   **Glassmorphism UI**: A high-end developer experience utilizing deep blurs, pure black backgrounds, and purple accents.
+
+---
+
+## 🏁 Getting Started
+
+1.  **Clone the Repository**:
+    ```bash
+    git clone https://github.com/Chandann-23/Core-SRE-agent.git
+    
+```
+2.  **Install Dependencies**:
+    ```bash
+    pip install -r requirements.txt
+    npm install
+    ```
+3.  **Run the Engine**:
+    *   Start the backend: `python simple_api.py`
+    *   Start the frontend: `npm run dev`
 
 ---

@@ -69,24 +69,29 @@ def test_realistic_mttr_calculation():
                 if logs and not first_log_time:
                     # Extract first log timestamp
                     first_log = logs[0]
-                    first_timestamp = first_log.match(/\[(\d{2}:\d{2}:\d{2})\]/)?.[1]
+                    import re
+                    first_timestamp = re.search(r'\[(\d{2}:\d{2}:\d{2})\]', first_log)
+                    if first_timestamp:
+                        first_log_time = first_timestamp.group(1)
                     if first_timestamp:
                         first_log_time = first_timestamp
                         print(f"  📝 First log timestamp: {first_log_time}")
                 
                 if logs and not success_log_time:
                     # Find success log timestamp
-                    success_log = logs.find(log => 'System restored to healthy state' in log)
+                    success_log = next((log for log in logs if 'System restored to healthy state' in log), None)
                     if success_log:
-                        success_timestamp = re.search(r'\[(\d{2}:\d{2}:\d{2})\]', success_log)?.group(1)
+                        success_timestamp = re.search(r'\[(\d{2}:\d{2}:\d{2})\]', success_log)
+                        if success_timestamp:
+                            success_log_time = success_timestamp.group(1)
                         if success_timestamp:
                             success_log_time = success_timestamp
                             print(f"  🎯 Success log timestamp: {success_log_time}")
                             
                             # Calculate expected MTTR
                             if first_log_time:
-                                [firstH, firstM, firstS] = first_log_time.split(':').map(Number)
-                                [successH, successM, successS] = success_log_time.split(':').map(Number)
+                                firstH, firstM, firstS = map(int, first_log_time.split(':'))
+                                successH, successM, successS = map(int, success_log_time.split(':'))
                                 
                                 first_total = firstH * 3600 + firstM * 60 + firstS
                                 success_total = successH * 3600 + successM * 60 + successS
@@ -122,15 +127,19 @@ def test_realistic_mttr_calculation():
             # Analyze the realistic MTTR calculation
             if len(final_logs) >= 2:
                 first_log = final_logs[0]
-                success_log = final_logs.find(log => 'System restored to healthy state' in log)
+                success_log = next((log for log in final_logs if 'System restored to healthy state' in log), None)
                 
                 if success_log:
-                    first_timestamp = first_log.match(/\[(\d{2}:\d{2}:\d{2})\]/)?.[1]
-                    success_timestamp = success_log.match(/\[(\d{2}:\d{2}:\d{2})\]/)?.[1]
+                    first_timestamp = re.search(r'\[(\d{2}:\d{2}:\d{2})\]', first_log)
+                    success_timestamp = re.search(r'\[(\d{2}:\d{2}:\d{2})\]', success_log)
+                    if first_timestamp:
+                        first_log_time = first_timestamp.group(1)
+                    if success_timestamp:
+                        success_log_time = success_timestamp.group(1)
                     
                     if first_timestamp and success_timestamp:
-                        [firstH, firstM, firstS] = first_timestamp.split(':').map(Number)
-                        [successH, successM, successS] = success_timestamp.split(':').map(Number)
+                        firstH, firstM, firstS = map(int, first_timestamp.group(1).split(':'))
+                        successH, successM, successS = map(int, success_timestamp.group(1).split(':'))
                         
                         first_total = firstH * 3600 + firstM * 60 + firstS
                         success_total = successH * 3600 + successM * 60 + successS
