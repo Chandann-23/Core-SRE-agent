@@ -983,7 +983,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
               </button>
             </div>
 
-            <div className="flex items-center gap-8">
+            <div className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-4">
               <div className="flex flex-col items-center">
                 <div className="text-lg tracking-[0.4em] font-montserrat bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">CORE SRE</div>
                 <div className="mt-0.5 text-[9px] font-medium uppercase tracking-[0.3em] text-slate-500">
@@ -993,7 +993,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
               <button
                 type="button"
                 onClick={() => setIsAboutOpen(true)}
-                className="text-slate-400 hover:text-cyan-400 transition-colors duration-200 text-sm font-medium"
+                className="pointer-events-auto text-slate-400 hover:text-cyan-400 transition-colors duration-200 text-sm font-medium border border-white/20 px-3 py-1 rounded-md hover:border-cyan-400/50"
               >
                 About
               </button>
