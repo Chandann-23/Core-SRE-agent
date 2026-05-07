@@ -761,9 +761,12 @@ const calculateAccurateMttr = (startTime, endTime) => {
       setHistory(prev => [...prev, "$ Injecting vulnerability into sandbox environment..."]);
       
       // Capture the current clean code before injecting bug
-      setOldCode(code || FALLBACK_CODE);
+      const currentCleanCode = code || FALLBACK_CODE;
+      setOldCode(currentCleanCode);
       setStatus("VULNERABLE");
       setShowDiff(false);
+      
+      setHistory(prev => [...prev, "$ Capturing clean code for diff comparison..."]);
       
       await axios.post(`${API_BASE}/inject-bug`);
       
@@ -773,8 +776,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
       fetchComplexFileContent(currentFile);
     } else {
   try {
-    setOldCode(code || FALLBACK_CODE);
-
+    // Don't set oldCode here - it should already contain the buggy code from injection
     setIsRepairing(true);
     setStatus("REPAIRING");
     setShowDiff(false);
