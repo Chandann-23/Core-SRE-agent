@@ -3,7 +3,7 @@ import axios from "axios";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import ReactDiffViewer from "react-diff-viewer-continued";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { Activity, Bug, ChevronDown, ChevronRight, FileCode, Folder, FolderOpen, PanelLeftClose, PanelLeftOpen, Plus, Terminal, Wrench, Play } from "lucide-react";
+import { Activity, Bug, ChevronDown, ChevronRight, FileCode, Folder, FolderOpen, PanelLeftClose, PanelLeftOpen, Plus, Terminal, Wrench, Play, X } from "lucide-react";
 import ReliabilityTerminal from "./components/ReliabilityTerminal";
 import SuccessModal from "./components/SuccessModal";
 
