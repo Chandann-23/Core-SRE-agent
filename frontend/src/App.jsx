@@ -1243,24 +1243,24 @@ const calculateAccurateMttr = (startTime, endTime) => {
                 )}
                 {!timelineEntries.length && (
                   <>
-                    <div className="max-w-[95%] rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white">
+                    <div className="max-w-[95%] rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-300">
                       Agent thought: Ready to inject a bug or run autonomous repair.
                     </div>
                   </>
                 )}
                 {isRepairing && (
-                  <div className="max-w-[95%] rounded-md border border-white/10 bg-black px-3 py-2 text-[13px] leading-relaxed text-white">
-                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-white font-montserrat">Analysis</div>
+                  <div className="max-w-[95%] rounded-md border border-slate-600 bg-slate-800 px-3 py-2 text-[13px] leading-relaxed text-slate-300">
+                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-300 font-montserrat">Analysis</div>
                     Agent thought: analyzing traceback, patching logic, and validating with pytest...
                   </div>
                 )}
                 {isRepairing && (
-                  <div ref={lastLogRef} className="rounded border border-white/10 bg-black px-3 py-2 font-mono text-xs text-white">
+                  <div ref={lastLogRef} className="rounded border border-slate-600 bg-slate-800 px-3 py-2 font-mono text-xs text-slate-300">
                     $ running repair workflow
                   </div>
                 )}
                 {!isRepairing && !timelineEntries.length && (
-                  <div ref={lastLogRef} className="text-xs text-white">
+                  <div ref={lastLogRef} className="text-xs text-slate-300">
                     No timeline entries yet.
                   </div>
                 )}
