@@ -1031,7 +1031,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
           </header>
 
           <section className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_340px]">
-            <div className="min-h-0 border border-white/5 bg-slate-900/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] p-4 lg:border-b-0">
+            <div className="min-h-0 border border-purple-500/50 bg-purple-950/20 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] p-4 lg:border-b-0">
               <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400 font-inter">Explorer</div>
               <div className="space-y-1 text-sm">
                 {/* Dynamic File Tree from API */}
@@ -1099,11 +1099,9 @@ const calculateAccurateMttr = (startTime, endTime) => {
             <div className="relative flex min-h-0 flex-col border border-white/5 bg-purple-950/20 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] lg:border-b-0">
               <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
-                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
-                    <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
-                  </div>
+                  <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 ml-2 font-mono">Editor</span>
+                </div>
                   <span className="text-xs text-slate-500 ml-2 font-mono">Editor</span>
                 </div>
                 <div className="text-xs text-slate-400 font-inter">{currentFile || 'complex_sandbox/app/main.py'}</div>
@@ -1221,7 +1219,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
             </div>
             </div>
 
-            <div className="min-h-0 border border-white/10 bg-black p-4">
+            <div className="min-h-0 border border-purple-500/50 bg-purple-950/20 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] p-4">
               <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white font-inter">
                 <Terminal size={14} />
                 Terminal / Timeline
@@ -1232,7 +1230,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                     <div
                       key={entry.id}
                       ref={index === timelineEntries.length - 1 && !isRepairing ? lastLogRef : null}
-                      className="flex items-center justify-between rounded border border-white/10 bg-black px-3 py-2 font-mono text-xs text-white"
+                      className="flex items-center justify-between rounded border border-purple-500/30 bg-purple-950/40 px-3 py-2 font-mono text-xs text-purple-300"
                     >
                       <span>{entry.body.startsWith("$") ? entry.body : `$ ${entry.body}`}</span>
                       <span className="ml-3 h-3 w-[2px] animate-pulse bg-white/90" />
@@ -1241,9 +1239,9 @@ const calculateAccurateMttr = (startTime, endTime) => {
                     <div
                       key={entry.id}
                       ref={index === timelineEntries.length - 1 && !isRepairing ? lastLogRef : null}
-                      className="max-w-[95%] rounded-md border border-white/10 bg-black px-3 py-2 text-white"
+                      className="max-w-[95%] rounded-md border border-purple-500/30 bg-purple-950/40 px-3 py-2 text-purple-300"
                     >
-                      <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-white font-montserrat">
+                      <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-purple-300 font-montserrat">
                         {entry.label}
                       </div>
                       <div className="text-[13px] leading-relaxed text-white">{entry.body}</div>
@@ -1252,24 +1250,24 @@ const calculateAccurateMttr = (startTime, endTime) => {
                 )}
                 {!timelineEntries.length && (
                   <>
-                    <div className="max-w-[95%] rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-300">
+                    <div className="max-w-[95%] rounded-lg border border-purple-500/30 bg-purple-950/40 px-3 py-2 text-sm text-purple-300">
                       Agent thought: Ready to inject a bug or run autonomous repair.
                     </div>
                   </>
                 )}
                 {isRepairing && (
-                  <div className="max-w-[95%] rounded-md border border-slate-600 bg-slate-800 px-3 py-2 text-[13px] leading-relaxed text-slate-300">
-                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-300 font-montserrat">Analysis</div>
+                  <div className="max-w-[95%] rounded-md border border-purple-500/30 bg-purple-950/40 px-3 py-2 text-[13px] leading-relaxed text-purple-300">
+                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-purple-300 font-montserrat">Analysis</div>
                     Agent thought: analyzing traceback, patching logic, and validating with pytest...
                   </div>
                 )}
                 {isRepairing && (
-                  <div ref={lastLogRef} className="rounded border border-slate-600 bg-slate-800 px-3 py-2 font-mono text-xs text-slate-300">
+                  <div ref={lastLogRef} className="rounded border border-purple-500/30 bg-purple-950/40 px-3 py-2 font-mono text-xs text-purple-300">
                     $ running repair workflow
                   </div>
                 )}
                 {!isRepairing && !timelineEntries.length && (
-                  <div ref={lastLogRef} className="text-xs text-slate-300">
+                  <div ref={lastLogRef} className="text-xs text-purple-300">
                     No timeline entries yet.
                   </div>
                 )}
