@@ -817,11 +817,10 @@ const calculateAccurateMttr = (startTime, endTime) => {
 
     setHistory(prev => [...prev, "$ Generating code diff visualization..."]);
 
-    setHistory(
-      Array.isArray(repairRes.data.history)
-        ? repairRes.data.history
-        : []
-    );
+    // Add repair history entries to timeline without clearing existing entries
+    if (Array.isArray(repairRes.data.history)) {
+      setHistory(prev => [...prev, ...repairRes.data.history]);
+    }
 
     setStatus("RESTORED");
 
