@@ -1212,8 +1212,8 @@ const calculateAccurateMttr = (startTime, endTime) => {
             </div>
             </div>
 
-            <div className="min-h-0 border border-white/5 bg-slate-900/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] p-4">
-              <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 font-inter">
+            <div className="min-h-0 border border-white/10 bg-black p-4">
+              <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white font-inter">
                 <Terminal size={14} />
                 Terminal / Timeline
               </div>
@@ -1223,46 +1223,44 @@ const calculateAccurateMttr = (startTime, endTime) => {
                     <div
                       key={entry.id}
                       ref={index === timelineEntries.length - 1 && !isRepairing ? lastLogRef : null}
-                      className="flex items-center justify-between rounded border border-slate-700 bg-slate-900 px-3 py-2 font-mono text-xs text-emerald-300"
+                      className="flex items-center justify-between rounded border border-white/10 bg-black px-3 py-2 font-mono text-xs text-white"
                     >
                       <span>{entry.body.startsWith("$") ? entry.body : `$ ${entry.body}`}</span>
-                      <span className="ml-3 h-3 w-[2px] animate-pulse bg-emerald-300/90" />
+                      <span className="ml-3 h-3 w-[2px] animate-pulse bg-white/90" />
                     </div>
                   ) : (
                     <div
                       key={entry.id}
                       ref={index === timelineEntries.length - 1 && !isRepairing ? lastLogRef : null}
-                      className={`max-w-[95%] rounded-md border-l-2 border-cyan-500 bg-slate-900/40 px-3 py-2 ${
-                        entry.type === "verification" ? "text-emerald-100" : "text-slate-100"
-                      }`}
+                      className="max-w-[95%] rounded-md border border-white/10 bg-black px-3 py-2 text-white"
                     >
-                      <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-cyan-400 font-montserrat">
+                      <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-white font-montserrat">
                         {entry.label}
                       </div>
-                      <div className="text-[13px] leading-relaxed">{entry.body}</div>
+                      <div className="text-[13px] leading-relaxed text-slate-300">{entry.body}</div>
                     </div>
                   ),
                 )}
                 {!timelineEntries.length && (
                   <>
-                    <div className="max-w-[95%] rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2 text-sm text-slate-300">
+                    <div className="max-w-[95%] rounded-lg border border-white/10 bg-black px-3 py-2 text-sm text-white">
                       Agent thought: Ready to inject a bug or run autonomous repair.
                     </div>
                   </>
                 )}
                 {isRepairing && (
-                  <div className="max-w-[95%] rounded-md border-l-2 border-cyan-500 bg-slate-900/40 px-3 py-2 text-[13px] leading-relaxed text-slate-200">
-                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-cyan-400 font-montserrat">Analysis</div>
+                  <div className="max-w-[95%] rounded-md border border-white/10 bg-black px-3 py-2 text-[13px] leading-relaxed text-white">
+                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-white font-montserrat">Analysis</div>
                     Agent thought: analyzing traceback, patching logic, and validating with pytest...
                   </div>
                 )}
                 {isRepairing && (
-                  <div ref={lastLogRef} className="rounded border border-slate-800 bg-black/40 px-3 py-2 font-mono text-xs text-emerald-300">
+                  <div ref={lastLogRef} className="rounded border border-white/10 bg-black px-3 py-2 font-mono text-xs text-white">
                     $ running repair workflow
                   </div>
                 )}
                 {!isRepairing && !timelineEntries.length && (
-                  <div ref={lastLogRef} className="text-xs text-slate-500">
+                  <div ref={lastLogRef} className="text-xs text-white">
                     No timeline entries yet.
                   </div>
                 )}
