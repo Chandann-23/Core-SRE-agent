@@ -1237,7 +1237,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                       <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-white font-montserrat">
                         {entry.label}
                       </div>
-                      <div className="text-[13px] leading-relaxed text-slate-300">{entry.body}</div>
+                      <div className="text-[13px] leading-relaxed text-white">{entry.body}</div>
                     </div>
                   ),
                 )}
