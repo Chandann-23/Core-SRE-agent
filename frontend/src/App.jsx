@@ -883,10 +883,10 @@ const calculateAccurateMttr = (startTime, endTime) => {
   });
 
   return (
-    <div className="h-screen w-full bg-[#0D1117] text-slate-200">
+    <div className="min-h-screen text-white font-inter flex flex-col" style={{background: 'radial-gradient(circle at top right, #0a0f1a, #050505)'}}>
       <div className="flex h-full">
         <aside
-          className={`shrink-0 overflow-hidden border border-white/10 bg-slate-950/80 backdrop-blur-xl transition-all duration-300 ease-in-out ${
+          className={`shrink-0 overflow-hidden border border-white/5 bg-slate-900/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] transition-all duration-300 ease-in-out ${
             isSidebarOpen ? "w-56 p-4 opacity-100" : "w-0 p-0 opacity-0"
           }`}
         >
@@ -968,7 +968,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
         </aside>
 
         <main className="flex min-w-0 flex-1 flex-col">
-          <header className="relative flex h-14 items-center justify-between border-b border-slate-800 px-5">
+          <header className="relative flex h-14 items-center justify-between border border-white/5 bg-slate-900/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] px-5">
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -982,7 +982,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
 
             <div className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-4">
               <div className="flex flex-col items-center">
-                <div className="brand-title text-lg tracking-[0.4em] text-slate-100 drop-shadow-[0_0_8px_rgba(34,211,238,0.15)]">CORE SRE</div>
+                <div className="text-lg tracking-[0.4em] font-montserrat bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">CORE SRE</div>
                 <div className="mt-0.5 text-[9px] font-medium uppercase tracking-[0.3em] text-slate-500">
                   Autonomous Recovery System
                 </div>
@@ -994,7 +994,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                 type="button"
                 onClick={runFullReliabilityAudit}
                 disabled={isRunningFullAudit || isTestActive}
-                className="inline-flex items-center gap-2 rounded-md border-2 border-cyan-500 bg-transparent px-4 py-1.5 text-xs text-cyan-400 hover:bg-cyan-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300"
+                className="inline-flex items-center gap-2 rounded-md border-2 border-cyan-500 bg-transparent px-4 py-1.5 text-xs text-cyan-400 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300 active:scale-95"
               >
                 <Play size={14} className={isRunningFullAudit ? "animate-pulse" : ""} />
                 {isRunningFullAudit ? "Running Audit..." : "Run Full Reliability Audit"}
@@ -1003,7 +1003,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                 type="button"
                 onClick={() => handleAction("inject")}
                 disabled={isTestActive}
-                className="inline-flex items-center gap-2 rounded-md border-2 border-slate-500 bg-transparent px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300"
+                className="inline-flex items-center gap-2 rounded-md border-2 border-slate-500 bg-transparent px-3 py-1.5 text-xs text-slate-400 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300 active:scale-95"
               >
                 <Bug size={14} />
                 Inject Bug
@@ -1012,7 +1012,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                 type="button"
                 onClick={() => handleAction("repair")}
                 disabled={isRepairing || isTestActive}
-                className="inline-flex items-center gap-2 rounded-md border-2 border-cyan-500 bg-transparent px-3 py-1.5 text-xs text-cyan-400 hover:bg-cyan-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300"
+                className="inline-flex items-center gap-2 rounded-md border-2 border-cyan-500 bg-transparent px-3 py-1.5 text-xs text-cyan-400 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300 active:scale-95"
               >
                 {isRepairing ? <Activity size={14} className="animate-spin" /> : <Wrench size={14} />}
                 Repair
@@ -1021,7 +1021,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
           </header>
 
           <section className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_340px]">
-            <div className="min-h-0 border-b border-r border-[#21262D] bg-[#161B22] p-4 lg:border-b-0">
+            <div className="min-h-0 border border-white/5 bg-slate-900/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] p-4 lg:border-b-0">
               <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400 font-inter">Explorer</div>
               <div className="space-y-1 text-sm">
                 {/* Dynamic File Tree from API */}
@@ -1077,7 +1077,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
               </div>
             </div>
             
-            <div className="relative flex min-h-0 flex-col border-b border-r border-[#21262D] bg-[#050505] lg:border-b-0">
+            <div className="relative flex min-h-0 flex-col border border-white/5 bg-black/60 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] lg:border-b-0">
               <div className="flex items-center justify-between border-b border-[#21262D] px-4 py-3">
                 <div className="text-xs text-slate-400 font-inter">{currentFile || 'complex_sandbox/app/main.py'}</div>
                 <div className="flex items-center gap-2">
@@ -1124,31 +1124,31 @@ const calculateAccurateMttr = (startTime, endTime) => {
                           styles={{
                             variables: {
                               dark: {
-                                background: '#050505',
-                                highlightBackground: '#1e3a8a',
-                                addedBackground: '#064e3b',
-                                removedBackground: '#7f1d1d',
-                                wordAddedBackground: '#065f46',
-                                wordRemovedBackground: '#991b1b',
+                                diffViewerBackground: 'transparent',
+                                addedBackground: 'rgba(0, 255, 130, 0.12)',
+                                addedGutterBackground: 'rgba(0, 255, 130, 0.2)',
+                                removedBackground: 'rgba(255, 70, 70, 0.12)',
+                                removedGutterBackground: 'rgba(255, 70, 70, 0.2)',
+                                wordAddedBackground: 'rgba(0, 255, 130, 0.3)',
+                                wordRemovedBackground: 'rgba(255, 70, 70, 0.3)',
                                 addedColor: '#86efac',
                                 removedColor: '#fca5a5',
-                                addedGutterBackground: '#064e3b',
-                                removedGutterBackground: '#7f1d1d',
-                                gutterBackground: '#1f2937',
+                                gutterBackground: 'rgba(0, 0, 0, 0.3)',
                                 gutterColor: '#9ca3af',
-                                highlightGutterBackground: '#1e3a8a',
+                                highlightBackground: 'rgba(59, 130, 246, 0.15)',
+                                highlightGutterBackground: 'rgba(59, 130, 246, 0.25)',
                                 highlightColor: '#bfdbfe',
                               }
                             },
                             titleBlock: {
-                              background: '#1f2937',
+                              background: 'rgba(15, 23, 42, 0.8)',
                               color: '#f3f4f6',
-                              borderBottom: '1px solid #374151'
+                              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
                             },
                             contentText: {
                               fontSize: '13px',
-                              fontFamily: "'Fira Code', monospace",
-                              lineHeight: '1.6'
+                              lineHeight: '1.6',
+                              fontFamily: '"Fira Code", monospace',
                             }
                           }}
                         />
@@ -1194,7 +1194,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
             </div>
             </div>
 
-            <div className="min-h-0 p-4">
+            <div className="min-h-0 border border-white/5 bg-slate-900/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] p-4">
               <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 font-inter">
                 <Terminal size={14} />
                 Terminal / Timeline
