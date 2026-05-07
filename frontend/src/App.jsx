@@ -863,7 +863,7 @@ function App() {
     <div className="h-screen w-full bg-[#0D1117] text-slate-200">
       <div className="flex h-full">
         <aside
-          className={`shrink-0 overflow-hidden border-r border-[#21262D] bg-slate-900/70 backdrop-blur-md transition-all duration-300 ease-in-out ${
+          className={`shrink-0 overflow-hidden border border-white/10 bg-slate-950/80 backdrop-blur-xl transition-all duration-300 ease-in-out ${
             isSidebarOpen ? "w-56 p-4 opacity-100" : "w-0 p-0 opacity-0"
           }`}
         >
@@ -971,7 +971,7 @@ function App() {
                 type="button"
                 onClick={runFullReliabilityAudit}
                 disabled={isRunningFullAudit || isTestActive}
-                className="inline-flex items-center gap-2 rounded-md border border-cyan-500 bg-cyan-500 px-4 py-1.5 text-xs text-white hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter"
+                className="inline-flex items-center gap-2 rounded-md border-2 border-cyan-500 bg-transparent px-4 py-1.5 text-xs text-cyan-400 hover:bg-cyan-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300"
               >
                 <Play size={14} className={isRunningFullAudit ? "animate-pulse" : ""} />
                 {isRunningFullAudit ? "Running Audit..." : "Run Full Reliability Audit"}
@@ -980,7 +980,7 @@ function App() {
                 type="button"
                 onClick={() => handleAction("inject")}
                 disabled={isTestActive}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-[#161B22] px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter"
+                className="inline-flex items-center gap-2 rounded-md border-2 border-slate-500 bg-transparent px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300"
               >
                 <Bug size={14} />
                 Inject Bug
@@ -989,7 +989,7 @@ function App() {
                 type="button"
                 onClick={() => handleAction("repair")}
                 disabled={isRepairing || isTestActive}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-[#161B22] px-3 py-1.5 text-xs text-cyan-400 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter"
+                className="inline-flex items-center gap-2 rounded-md border-2 border-cyan-500 bg-transparent px-3 py-1.5 text-xs text-cyan-400 hover:bg-cyan-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300"
               >
                 {isRepairing ? <Activity size={14} className="animate-spin" /> : <Wrench size={14} />}
                 Repair

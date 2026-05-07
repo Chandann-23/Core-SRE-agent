@@ -33,10 +33,16 @@ const SuccessModal = ({
   }, [isOpen, onClose]);
 
   console.log('🔄 NUCLEAR RESET: SuccessModal render, isOpen:', isOpen);
-  const formatTime = (seconds) => {
-    if (!seconds || seconds === 0) return "00:00";
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+  const formatTime = (timeValue) => {
+    // Handle if backend sends formatted string (like "00:15") directly
+    if (typeof timeValue === 'string') {
+      return timeValue;
+    }
+    
+    // Fallback for numeric values
+    if (!timeValue || timeValue === 0) return "00:00";
+    const mins = Math.floor(timeValue / 60);
+    const secs = timeValue % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 

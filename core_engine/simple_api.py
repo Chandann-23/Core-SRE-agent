@@ -231,7 +231,7 @@ class RepairResponse(BaseModel):
     iterations: int
     history: list[str]
     final_code: str
-    mttr_time: float
+    mttr_time: str
     is_fixed: bool
     original_code: str | None = None
     audit_logs: list[str] | None = None  # Add audit logs field
@@ -472,16 +472,21 @@ async def repair_bug():
             print(f"Warning: Could not read fixed file: {e}")
             post_repair_code = result.get("final_code", "# Fixed code not available")
         
-        elapsed = round(time.time() - start_time, 2)
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] 📈 Autonomous repair completed - MTTR: {elapsed:.2f}s")
+        elapsed = time.time() - start_time
+        # Format MTTR as MM:SS string
+        minutes = int(elapsed // 60)
+        seconds = int(elapsed % 60)
+        formatted_mttr = f"{minutes:02d}:{seconds:02d}"
         
-        # Return exact JSON structure with consistent key names
+        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] 📈 Autonomous repair completed - MTTR: {formatted_mttr}")
+        
+        # Return exact JSON structure with formatted MTTR string
         return {
             "status": "success",
             "audit_logs": audit_logs,
             "original_code": pre_repair_code,
             "final_code": post_repair_code,
-            "mttr_time": round(elapsed, 2)
+            "mttr_time": formatted_mttr
         }
         
     except Exception as e:

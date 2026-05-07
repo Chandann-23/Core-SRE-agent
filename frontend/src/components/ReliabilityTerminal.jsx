@@ -30,17 +30,17 @@ const ReliabilityTerminal = ({
 
   const getStatusColor = () => {
     if (showWaitingMessage) return 'text-yellow-400 border-yellow-400/30';
-    if (systemStatus === 'Healthy') return 'text-cyan-400 border-cyan-400/30';
+    if (systemStatus === 'Healthy') return 'text-emerald-400 border-emerald-400/30 shadow-[0_0_15px_rgba(34,197,94,0.4)]';
     if (systemStatus === 'Error') return 'text-rose-400 border-rose-400/30';
     return 'text-cyan-400 border-cyan-400/30';
   };
 
   if (!isOpen) {
     return (
-      <div className="border-t border-[#21262D] bg-slate-900/70 backdrop-blur-md p-3">
+      <div className="border-t border-white/10 bg-slate-950/80 backdrop-blur-xl p-3">
         <button
           onClick={onToggle}
-          className="flex items-center gap-2 px-4 py-2 bg-[#161B22] border border-[#21262D] rounded-md text-slate-300 hover:bg-slate-800 transition-colors text-sm font-inter font-semibold"
+          className="flex items-center gap-2 px-4 py-2 bg-[#161B22] border border-white/10 rounded text-slate-300 hover:bg-slate-800 transition-colors text-sm font-inter font-semibold"
         >
           <Terminal className="w-4 h-4" />
           View Live Audit Console
@@ -55,8 +55,8 @@ const ReliabilityTerminal = ({
   }
 
   return (
-    <div className="border-t border-[#21262D] bg-slate-900/70 backdrop-blur-md">
-      <div className="flex items-center justify-between p-3 border-b border-[#21262D]">
+    <div className="border-t border-white/10 bg-slate-950/80 backdrop-blur-xl animate-slideUpSpring">
+      <div className="flex items-center justify-between p-3 border-b border-white/10">
         <div className="flex items-center gap-3">
           <button
             onClick={onToggle}
