@@ -61,12 +61,12 @@ const ReliabilityTerminal = ({
   }
 
   return (
-    <div className="border-t border-white/10 bg-slate-950/80 backdrop-blur-xl animate-slideUpSpring">
+    <div className="border-t border-white/10 bg-black animate-slideUpSpring">
       <div className="flex items-center justify-between p-3 border-b border-white/10">
         <div className="flex items-center gap-3">
           <button
             onClick={onToggle}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[#161B22] border border-[#21262D] rounded text-slate-300 hover:bg-slate-800 transition-colors text-sm font-inter font-semibold"
+            className="flex items-center gap-2 px-3 py-1.5 bg-black border border-white/10 rounded text-slate-300 hover:bg-white/10 transition-colors text-sm font-inter font-semibold"
           >
             <Terminal className="w-4 h-4" />
             Hide Console
@@ -110,11 +110,11 @@ const ReliabilityTerminal = ({
       </div>
 
       <div className="p-4">
-        <div className="bg-black rounded-lg border border-slate-800 p-4 font-mono text-sm">
+        <div className="bg-black border border-white/10 p-4 font-mono text-sm">
           <div className="mb-3 text-emerald-400 text-xs font-bold">
             $ CORE SRE Reliability Audit Trail
             {isTestActive && (
-              <span className="ml-3 text-blue-400 animate-pulse">
+              <span className="ml-3 text-cyan-400 animate-pulse">
                 ● Monitoring Active
               </span>
             )}
@@ -122,19 +122,19 @@ const ReliabilityTerminal = ({
           
           <div
             ref={logContainerRef}
-            className="space-y-1 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-900"
+            className="space-y-0.5 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-black"
           >
             {auditLogs.length === 0 ? (
               <div className="text-slate-500 text-xs">
-                No audit logs yet. Start a reliability test to see live updates.
+                Waiting for audit logs...
               </div>
             ) : (
               auditLogs.map((log, index) => (
                 <div
                   key={index}
-                  className="text-slate-300 text-xs leading-relaxed hover:bg-slate-900/50 px-2 py-1 rounded transition-colors duration-200"
+                  className="text-emerald-400 text-xs leading-relaxed font-mono"
                 >
-                  <span className="text-emerald-500 font-mono">{log.split(']')[0]}]</span>
+                  <span className="text-emerald-400 font-mono">{log.split(']')[0]}]</span>
                   <span className={`ml-2 ${index === auditLogs.length - 1 ? 'text-white font-semibold' : 'text-slate-300'}`}>
                     {log.split(']').slice(1).join(']')}
                   </span>

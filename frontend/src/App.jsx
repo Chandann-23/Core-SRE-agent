@@ -886,7 +886,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
   });
 
   return (
-    <div className="min-h-screen text-white font-inter flex flex-col" style={{background: 'radial-gradient(circle at top right, #0a0f1a, #050505)'}}>
+    <div className="min-h-screen text-white font-inter flex flex-col" style={{background: '#000000'}}>
       <div className="flex h-full">
         <aside
           className={`shrink-0 overflow-hidden border border-white/5 bg-slate-900/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] transition-all duration-300 ease-in-out ${
@@ -985,7 +985,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
 
             <div className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-4">
               <div className="flex flex-col items-center">
-                <div className="text-lg tracking-[0.4em] font-montserrat bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">CORE SRE</div>
+                <div className="text-lg tracking-[0.4em] font-montserrat bg-gradient-to-r from-purple-400 to-violet-600 bg-clip-text text-transparent">CORE SRE</div>
                 <div className="mt-0.5 text-[9px] font-medium uppercase tracking-[0.3em] text-slate-500">
                   Autonomous Recovery System
                 </div>
@@ -1004,7 +1004,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                 type="button"
                 onClick={runFullReliabilityAudit}
                 disabled={isRunningFullAudit || isTestActive}
-                className="inline-flex items-center gap-2 rounded-md border-2 border-cyan-500 bg-transparent px-4 py-1.5 text-xs text-cyan-400 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300 active:scale-95"
+                className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-transparent px-4 py-1.5 text-xs text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300 active:scale-95"
               >
                 <Play size={14} className={isRunningFullAudit ? "animate-pulse" : ""} />
                 {isRunningFullAudit ? "Running Audit..." : "Run Full Reliability Audit"}
@@ -1013,7 +1013,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                 type="button"
                 onClick={() => handleAction("inject")}
                 disabled={isTestActive}
-                className="inline-flex items-center gap-2 rounded-md border-2 border-slate-500 bg-transparent px-3 py-1.5 text-xs text-slate-400 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300 active:scale-95"
+                className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-transparent px-3 py-1.5 text-xs text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300 active:scale-95"
               >
                 <Bug size={14} />
                 Inject Bug
@@ -1022,7 +1022,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                 type="button"
                 onClick={() => handleAction("repair")}
                 disabled={isRepairing || isTestActive}
-                className="inline-flex items-center gap-2 rounded-md border-2 border-cyan-500 bg-transparent px-3 py-1.5 text-xs text-cyan-400 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300 active:scale-95"
+                className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-transparent px-3 py-1.5 text-xs text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter transition-all duration-300 active:scale-95"
               >
                 {isRepairing ? <Activity size={14} className="animate-spin" /> : <Wrench size={14} />}
                 Repair
@@ -1087,8 +1087,16 @@ const calculateAccurateMttr = (startTime, endTime) => {
               </div>
             </div>
             
-            <div className="relative flex min-h-0 flex-col border border-white/5 bg-black/60 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] lg:border-b-0">
-              <div className="flex items-center justify-between border-b border-[#21262D] px-4 py-3">
+            <div className="relative flex min-h-0 flex-col border border-white/5 bg-purple-950/20 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] lg:border-b-0">
+              <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
+                  </div>
+                  <span className="text-xs text-slate-500 ml-2 font-mono">Editor</span>
+                </div>
                 <div className="text-xs text-slate-400 font-inter">{currentFile || 'complex_sandbox/app/main.py'}</div>
                 <div className="flex items-center gap-2">
                   <button
@@ -1188,7 +1196,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                         overflowX: "hidden",
                         textAlign: "left",
                         letterSpacing: "normal",
-                        fontFamily: "'Fira Code', monospace",
+                        fontFamily: "'Consolas', 'Monaco', 'Courier New', monospace",
                       }}
                     >
                       {code || FALLBACK_CODE}
