@@ -23,29 +23,29 @@ const ReliabilityTerminal = ({
 
   const getStatusIcon = () => {
     if (!isTestActive) return null;
-    if (systemStatus === 'Healthy') return <CheckCircle className="w-4 h-4 text-emerald-400" />;
+    if (systemStatus === 'Healthy') return <CheckCircle className="w-4 h-4 text-cyan-400" />;
     if (systemStatus === 'Error') return <XCircle className="w-4 h-4 text-rose-400" />;
-    return <Activity className="w-4 h-4 text-blue-400 animate-pulse" />;
+    return <Activity className="w-4 h-4 text-cyan-400 animate-pulse" />;
   };
 
   const getStatusColor = () => {
     if (showWaitingMessage) return 'text-yellow-400 border-yellow-400/30';
-    if (systemStatus === 'Healthy') return 'text-emerald-400 border-emerald-400/30';
+    if (systemStatus === 'Healthy') return 'text-cyan-400 border-cyan-400/30';
     if (systemStatus === 'Error') return 'text-rose-400 border-rose-400/30';
-    return 'text-blue-400 border-blue-400/30';
+    return 'text-cyan-400 border-cyan-400/30';
   };
 
   if (!isOpen) {
     return (
-      <div className="border-t border-slate-800 bg-slate-950 p-3">
+      <div className="border-t border-[#21262D] bg-slate-900/70 backdrop-blur-md p-3">
         <button
           onClick={onToggle}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-700 rounded-md text-slate-300 hover:bg-slate-800 transition-colors text-sm font-mono"
+          className="flex items-center gap-2 px-4 py-2 bg-[#161B22] border border-[#21262D] rounded-md text-slate-300 hover:bg-slate-800 transition-colors text-sm font-inter font-semibold"
         >
           <Terminal className="w-4 h-4" />
           View Live Audit Console
           {isTestActive && (
-            <span className="ml-2 px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs">
+            <span className="ml-2 px-2 py-1 bg-cyan-500/20 text-cyan-400 rounded text-xs">
               ACTIVE
             </span>
           )}
@@ -55,12 +55,12 @@ const ReliabilityTerminal = ({
   }
 
   return (
-    <div className="border-t border-slate-800 bg-slate-950">
-      <div className="flex items-center justify-between p-3 border-b border-slate-800">
+    <div className="border-t border-[#21262D] bg-slate-900/70 backdrop-blur-md">
+      <div className="flex items-center justify-between p-3 border-b border-[#21262D]">
         <div className="flex items-center gap-3">
           <button
             onClick={onToggle}
-            className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-slate-300 hover:bg-slate-800 transition-colors text-sm font-mono"
+            className="flex items-center gap-2 px-3 py-1.5 bg-[#161B22] border border-[#21262D] rounded text-slate-300 hover:bg-slate-800 transition-colors text-sm font-inter font-semibold"
           >
             <Terminal className="w-4 h-4" />
             Hide Console
@@ -69,7 +69,7 @@ const ReliabilityTerminal = ({
           {isTestActive && (
             <div className={`flex items-center gap-2 px-3 py-1.5 border rounded-md ${getStatusColor()}`}>
               <Clock className="w-4 h-4" />
-              <span className="font-mono text-sm font-bold">
+              <span className="font-inter text-sm font-bold">
                 {showWaitingMessage ? 'Still waiting for cloud propagation...' : `MTTR: ${formatTime(mttrTime)}`}
               </span>
               {showWaitingMessage ? (

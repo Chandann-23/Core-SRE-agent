@@ -4,7 +4,6 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import ReactDiffViewer from "react-diff-viewer-continued";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Activity, Bug, ChevronDown, ChevronRight, FileCode, Folder, FolderOpen, PanelLeftClose, PanelLeftOpen, Plus, Terminal, Wrench, Play } from "lucide-react";
-import logo from "./assets/logo.png";
 import ReliabilityTerminal from "./components/ReliabilityTerminal";
 import SuccessModal from "./components/SuccessModal";
 
@@ -601,6 +600,13 @@ function App() {
     if (isRunningFullAudit) return;
     
     setIsRunningFullAudit(true);
+    setIsTerminalOpen(true);
+    
+    // Inject initialization logs immediately
+    setAuditLogs([
+      "[00:00] 🔍 Initializing SRE pipeline...",
+      "[00:01] 🧠 Invoking GLM-5.1 Neural Engine..."
+    ]);
     
     try {
       // Refresh hook: Ensure we're seeing the latest complex sandbox code
@@ -777,6 +783,7 @@ function App() {
       setOldCode(code || FALLBACK_CODE);
       setIsRepairing(true);
       setStatus("REPAIRING");
+      setIsTerminalOpen(true);
       
       // Start polling for the repaired file content
       console.log(`🔧 [Repair] Starting repair process for ${currentFile}`);
@@ -853,16 +860,15 @@ function App() {
   });
 
   return (
-    <div className="h-screen w-full bg-[#0a0a0a] text-slate-200">
+    <div className="h-screen w-full bg-[#0D1117] text-slate-200">
       <div className="flex h-full">
         <aside
-          className={`shrink-0 overflow-hidden border-r border-slate-800 bg-slate-950 transition-all duration-300 ease-in-out ${
+          className={`shrink-0 overflow-hidden border-r border-[#21262D] bg-slate-900/70 backdrop-blur-md transition-all duration-300 ease-in-out ${
             isSidebarOpen ? "w-56 p-4 opacity-100" : "w-0 p-0 opacity-0"
           }`}
         >
-          <div className="-m-4 mb-4 flex flex-col items-center justify-center border-b border-slate-900/50 bg-[#000000] py-10">
-            <img src={logo} alt="CORE SRE" className="h-12 w-auto" />
-            <div className="mt-4 font-mono text-lg font-bold tracking-[0.2em] text-white">CORE SRE</div>
+          <div className="-m-4 mb-4 flex flex-col items-center justify-center border-b border-[#21262D] bg-[#161B22] py-10">
+            <div className="text-lg font-bold tracking-[0.4em] uppercase text-white font-montserrat drop-shadow-[0_0_8px_rgba(34,211,238,0.15)]">CORE SRE</div>
             <div className="mt-1 text-[9px] font-medium uppercase tracking-[0.3em] text-slate-500">
               Autonomous Recovery System
             </div>
@@ -952,9 +958,8 @@ function App() {
             </div>
 
             <div className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-4">
-              <img src={logo} alt="CORE SRE" className="h-9 w-auto opacity-95" />
               <div className="flex flex-col items-center">
-                <div className="brand-title text-lg tracking-[0.35em] text-slate-100">CORE SRE</div>
+                <div className="brand-title text-lg tracking-[0.4em] text-slate-100 drop-shadow-[0_0_8px_rgba(34,211,238,0.15)]">CORE SRE</div>
                 <div className="mt-0.5 text-[9px] font-medium uppercase tracking-[0.3em] text-slate-500">
                   Autonomous Recovery System
                 </div>
@@ -966,7 +971,7 @@ function App() {
                 type="button"
                 onClick={runFullReliabilityAudit}
                 disabled={isRunningFullAudit || isTestActive}
-                className="inline-flex items-center gap-2 rounded-md border border-blue-600 bg-blue-600 px-4 py-1.5 text-xs text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 font-semibold"
+                className="inline-flex items-center gap-2 rounded-md border border-cyan-500 bg-cyan-500 px-4 py-1.5 text-xs text-white hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter"
               >
                 <Play size={14} className={isRunningFullAudit ? "animate-pulse" : ""} />
                 {isRunningFullAudit ? "Running Audit..." : "Run Full Reliability Audit"}
@@ -975,7 +980,7 @@ function App() {
                 type="button"
                 onClick={() => handleAction("inject")}
                 disabled={isTestActive}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-[#161B22] px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter"
               >
                 <Bug size={14} />
                 Inject Bug
@@ -984,7 +989,7 @@ function App() {
                 type="button"
                 onClick={() => handleAction("repair")}
                 disabled={isRepairing || isTestActive}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-100 px-3 py-1.5 text-xs text-slate-950 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-[#161B22] px-3 py-1.5 text-xs text-cyan-400 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40 font-semibold font-inter"
               >
                 {isRepairing ? <Activity size={14} className="animate-spin" /> : <Wrench size={14} />}
                 Repair
@@ -993,8 +998,8 @@ function App() {
           </header>
 
           <section className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_340px]">
-            <div className="min-h-0 border-b border-r border-slate-800 p-4 lg:border-b-0">
-              <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Explorer</div>
+            <div className="min-h-0 border-b border-r border-[#21262D] bg-[#161B22] p-4 lg:border-b-0">
+              <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400 font-inter">Explorer</div>
               <div className="space-y-1 text-sm">
                 {/* Dynamic File Tree from API */}
                 {AVAILABLE_FILES.length > 0 ? (
@@ -1009,7 +1014,7 @@ function App() {
                         key={file.name}
                         className={`ml-11 flex items-center gap-2 rounded px-2 py-1 cursor-pointer transition ${
                           currentFile === file.name
-                            ? "bg-slate-900/60 text-slate-100"
+                            ? "bg-slate-900/60 text-cyan-400 border-l-2 border-cyan-500"
                             : "text-slate-400 hover:bg-slate-900/40 hover:text-slate-200"
                         }`}
                         onClick={() => fetchComplexFileContent(file.name)}
@@ -1049,9 +1054,9 @@ function App() {
               </div>
             </div>
 
-            <div className="relative flex min-h-0 flex-col border-b border-r border-slate-800 lg:border-b-0">
-              <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
-                <div className="text-xs text-slate-400">{currentFile || 'complex_sandbox/app/main.py'}</div>
+            <div className="relative flex min-h-0 flex-col border-b border-r border-[#21262D] bg-[#050505] lg:border-b-0">
+              <div className="flex items-center justify-between border-b border-[#21262D] px-4 py-3">
+                <div className="text-xs text-slate-400 font-inter">{currentFile || 'complex_sandbox/app/main.py'}</div>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -1147,7 +1152,7 @@ function App() {
             </div>
 
             <div className="min-h-0 p-4">
-              <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 font-inter">
                 <Terminal size={14} />
                 Terminal / Timeline
               </div>
@@ -1166,11 +1171,11 @@ function App() {
                     <div
                       key={entry.id}
                       ref={index === timelineEntries.length - 1 && !isRepairing ? lastLogRef : null}
-                      className={`max-w-[95%] rounded-md border-l-2 border-blue-500 bg-slate-900/40 px-3 py-2 ${
+                      className={`max-w-[95%] rounded-md border-l-2 border-cyan-500 bg-slate-900/40 px-3 py-2 ${
                         entry.type === "verification" ? "text-emerald-100" : "text-slate-100"
                       }`}
                     >
-                      <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-blue-300">
+                      <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-cyan-400 font-montserrat">
                         {entry.label}
                       </div>
                       <div className="text-[13px] leading-relaxed">{entry.body}</div>
@@ -1188,8 +1193,8 @@ function App() {
                   </>
                 )}
                 {isRepairing && (
-                  <div className="max-w-[95%] rounded-md border-l-2 border-blue-500 bg-slate-900/40 px-3 py-2 text-[13px] leading-relaxed text-slate-200">
-                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-blue-300">Analysis</div>
+                  <div className="max-w-[95%] rounded-md border-l-2 border-cyan-500 bg-slate-900/40 px-3 py-2 text-[13px] leading-relaxed text-slate-200">
+                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-cyan-400 font-montserrat">Analysis</div>
                     Agent thought: analyzing traceback, patching logic, and validating with pytest...
                   </div>
                 )}
