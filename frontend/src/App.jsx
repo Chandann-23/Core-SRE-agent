@@ -971,7 +971,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
         </aside>
 
         <main className="flex min-w-0 flex-1 flex-col">
-          <header className="relative flex h-14 items-center justify-between border border-white/5 bg-slate-900/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] px-5">
+          <header className="relative flex h-14 items-center justify-between border border-purple-400/30 bg-purple-950/60 backdrop-blur-3xl shadow-[0_0_20px_rgba(139,92,246,0.2)] px-5">
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -1096,12 +1096,14 @@ const calculateAccurateMttr = (startTime, endTime) => {
               </div>
             </div>
             
-            <div className="relative flex min-h-0 flex-col border border-white/5 bg-purple-950/20 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] lg:border-b-0">
+            <div className="relative flex min-h-0 flex-col border border-purple-400/30 bg-purple-950/40 backdrop-blur-3xl shadow-[0_0_20px_rgba(139,92,246,0.3)] rounded-lg lg:border-b-0">
               <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500 ml-2 font-mono">Editor</span>
-                </div>
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
+                  </div>
                   <span className="text-xs text-slate-500 ml-2 font-mono">Editor</span>
                 </div>
                 <div className="text-xs text-slate-400 font-inter">{currentFile || 'complex_sandbox/app/main.py'}</div>

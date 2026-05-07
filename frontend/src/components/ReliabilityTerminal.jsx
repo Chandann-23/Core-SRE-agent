@@ -110,11 +110,11 @@ const ReliabilityTerminal = ({
       </div>
 
       <div className="p-4">
-        <div className="bg-black border border-white/10 p-4 font-mono text-sm">
-          <div className="mb-3 text-white text-xs font-bold">
+        <div className="bg-purple-950/60 border border-purple-400/30 p-4 font-mono text-sm shadow-[0_0_20px_rgba(139,92,246,0.2)]">
+          <div className="mb-3 text-purple-300 text-xs font-bold">
             $ CORE SRE Reliability Audit Trail
             {isTestActive && (
-              <span className="ml-3 text-white animate-pulse">
+              <span className="ml-3 text-purple-400 animate-pulse">
                 ● Monitoring Active
               </span>
             )}
@@ -125,17 +125,17 @@ const ReliabilityTerminal = ({
             className="space-y-0.5 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-black"
           >
             {auditLogs.length === 0 ? (
-              <div className="text-white text-xs">
+              <div className="text-purple-300 text-xs">
                 Waiting for audit logs...
               </div>
             ) : (
               auditLogs.map((log, index) => (
                 <div
                   key={index}
-                  className="text-white text-xs leading-relaxed font-mono"
+                  className="text-purple-300 text-xs leading-relaxed font-mono"
                 >
-                  <span className="text-white font-mono">{log.split(']')[0]}]</span>
-                  <span className={`ml-2 ${index === auditLogs.length - 1 ? 'text-white font-semibold' : 'text-white'}`}>
+                  <span className="text-purple-400 font-mono">{log.split(']')[0]}]</span>
+                  <span className={`ml-2 ${index === auditLogs.length - 1 ? 'text-purple-200 font-semibold' : 'text-purple-300'}`}>
                     {log.split(']').slice(1).join(']')}
                   </span>
                 </div>
@@ -145,10 +145,10 @@ const ReliabilityTerminal = ({
           </div>
 
           {isTestActive && (
-            <div className="mt-3 pt-3 border-t border-white/10">
+            <div className="mt-3 pt-3 border-t border-purple-400/30">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                <span className="text-white text-xs font-mono">
+                <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
+                <span className="text-purple-300 text-xs font-mono">
                   Real-time monitoring active...
                 </span>
               </div>
