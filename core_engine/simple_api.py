@@ -2,11 +2,13 @@ from __future__ import annotations
 import os
 import asyncio
 import time
+import json
 from datetime import datetime
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from sse_starlette.sse import EventSourceResponse
 import sys
 
 # --- MODULAR IMPORTS ---
@@ -44,11 +46,20 @@ app.add_middleware(
 
 # --- AUDIT TRAIL ---
 audit_logs = []  # Global list to store timestamped strings
+log_queue = asyncio.Queue()  # Global queue for SSE streaming
 
 def add_audit_log(message: str):
     """Add a timestamped message to the audit trail"""
     timestamped_message = f"[{datetime.now().strftime('%H:%M:%S.%f')[:-3]}] {message}"
     audit_logs.append(timestamped_message)
+
+def push_log(message: str):
+    """Push a log to the SSE queue for real-time streaming"""
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    log_message = f"[{timestamp}] {message}"
+    log_queue.put_nowait(log_message)
+    # Also add to audit_logs for compatibility
+    audit_logs.append(log_message)
     print(f"AUDIT: {timestamped_message}")
 
 # --- AUTO-PROVISIONING ---
@@ -434,33 +445,33 @@ async def repair_bug():
             pre_repair_code = "# Original code not available"
         
         # AUDIT LOG HANDSHAKE - Initialize with professional SRE logs during 40s delay
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 1: GLM-4 Neural Engine Analysis started...")
+        push_log("Phase 1: GLM-4 Neural Engine Analysis started...")
         
         # Node 1: Analysis (10s) - Professional SRE logs
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 2: Scanning Financial Module for IndexError and TypeError vulnerabilities...")
+        push_log("Phase 2: Scanning Financial Module for IndexError and TypeError vulnerabilities...")
         await asyncio.sleep(2)  # First 2s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 3: GLM-4 model verified - ASTRA-style integration ready")
+        push_log("Phase 3: GLM-4 model verified - ASTRA-style integration ready")
         await asyncio.sleep(2)  # Second 2s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 4: Heuristic analysis of chained IndexError in payment processing...")
+        push_log("Phase 4: Heuristic analysis of chained IndexError in payment processing...")
         await asyncio.sleep(2)  # Third 2s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 5: TypeError detected in calculate_tax function AND IndexError in process_payment")
+        push_log("Phase 5: TypeError detected in calculate_tax function AND IndexError in process_payment")
         await asyncio.sleep(2)  # Fourth 2s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 6: Generating GLM-4 AI Patch for Transaction Logic...")
+        push_log("Phase 6: Generating GLM-4 AI Patch for Transaction Logic...")
         await asyncio.sleep(2)  # Fifth 2s chunk
         
         # Node 2: Actual AI Repair logic from core_logic with thread_id config
         config = {"configurable": {"thread_id": "sre-prod-session"}}
         result = await run_autonomous_repair(target_file, "TypeError in calculate_tax and IndexError in process_payment", config)
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] 🔧 AI repair logic executed successfully")
+        push_log("🔧 AI repair logic executed successfully")
         
         # Node 3: Stability Verification (30s) - More Professional SRE logs for 40s total
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 7: Running Regression Tests on Vercel Sandbox...")
+        push_log("Phase 7: Running Regression Tests on Vercel Sandbox...")
         await asyncio.sleep(8)  # First 8s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 8: Validating financial transaction integrity with GLM-4...")
+        push_log("Phase 8: Validating financial transaction integrity with GLM-4...")
         await asyncio.sleep(8)  # Second 8s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 9: System stability verification complete")
+        push_log("Phase 9: System stability verification complete")
         await asyncio.sleep(8)  # Third 8s chunk
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] Phase 10: Final validation passed - System ready for production")
+        push_log("Phase 10: Final validation passed - System ready for production")
         await asyncio.sleep(6)  # Fourth 6s chunk
         
         # Read the fixed code (post_repair_code)
@@ -478,7 +489,7 @@ async def repair_bug():
         seconds = int(elapsed % 60)
         formatted_mttr = f"{minutes:02d}:{seconds:02d}"
         
-        audit_logs.append(f"[{datetime.now().strftime('%H:%M:%S')}] 📈 Autonomous repair completed - MTTR: {formatted_mttr}")
+        push_log(f"📈 Autonomous repair completed - MTTR: {formatted_mttr}")
         
         # Return exact JSON structure with formatted MTTR string
         return {
@@ -512,9 +523,36 @@ async def get_audit_logs() -> AuditLogResponse:
 @app.delete("/audit-logs")
 async def clear_audit_logs_endpoint():
     """Clear all audit logs"""
+    global audit_logs
     audit_logs.clear()
-    add_audit_log("Audit trail cleared")
-    return {"status": "cleared", "message": "Audit logs cleared"}
+    return {"message": "Audit logs cleared"}
+
+@app.get("/stream-logs")
+async def stream_logs(request: Request):
+    """Server-Sent Events endpoint for real-time log streaming"""
+    async def log_generator():
+        while True:
+            # Check if client disconnected
+            if await request.is_disconnected():
+                break
+            
+            try:
+                # Get a log from the queue with timeout
+                log = await asyncio.wait_for(log_queue.get(), timeout=1.0)
+                yield {
+                    "event": "message",
+                    "id": "message_id",
+                    "data": json.dumps({"log": log})
+                }
+            except asyncio.TimeoutError:
+                # Send heartbeat to keep connection alive
+                yield {
+                    "event": "heartbeat",
+                    "id": "heartbeat_id",
+                    "data": json.dumps({"type": "heartbeat"})
+                }
+    
+    return EventSourceResponse(log_generator())
 
 @app.get("/audit-logs-stream")
 async def get_audit_logs_stream():

@@ -13,6 +13,7 @@ const ReliabilityTerminal = ({
   onResetTimer 
 }) => {
   const logContainerRef = useRef(null);
+  const terminalEndRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(true);
 
   useEffect(() => {
@@ -20,6 +21,11 @@ const ReliabilityTerminal = ({
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
     }
   }, [auditLogs, autoScroll]);
+
+  useEffect(() => {
+    // Scroll to the bottom whenever auditLogs changes
+    terminalEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [auditLogs]);
 
   const getStatusIcon = () => {
     if (!isTestActive) return null;
@@ -133,6 +139,7 @@ const ReliabilityTerminal = ({
                 </div>
               ))
             )}
+            <div ref={terminalEndRef} />
           </div>
 
           {isTestActive && (
