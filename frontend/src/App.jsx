@@ -503,15 +503,24 @@ const calculateAccurateMttr = (startTime, endTime) => {
       setOldCode(code || FALLBACK_CODE);
       setStatus("VULNERABLE");
       setShowDiff(false);
+      
+      setHistory(prev => [...prev, "$ Injecting simulated vulnerabilities..."]);
       await axios.post(`${API_BASE}/inject-bug`);
+      
+      setHistory(prev => [...prev, "$ Vulnerabilities injected - system compromised"]);
       
       // Step 3: Start MTTR timer
       startMttrTimer();
       setIsTestActive(true);
       setShowWaitingMessage(false);
       
+      setHistory(prev => [...prev, "$ MTTR timer started - monitoring repair process"]);
+      
       // Step 4: Call /repair
+      setHistory(prev => [...prev, "$ Initiating autonomous repair sequence..."]);
       await axios.post(`${API_BASE}/repair`);
+      
+      setHistory(prev => [...prev, "$ Repair sequence initiated - monitoring progress"]);
       
       // Step 5: Start enhanced log polling (replacing broken EventSource)
       startAuditPolling();
@@ -579,6 +588,11 @@ const calculateAccurateMttr = (startTime, endTime) => {
     
     setIsRunningFullAudit(true);
     setIsTerminalOpen(true);
+    
+    // Add real-time timeline entries
+    setHistory(prev => [...prev, "$ Starting full reliability audit..."]);
+    setHistory(prev => [...prev, "$ Initializing SRE pipeline..."]);
+    setHistory(prev => [...prev, "$ Invoking GLM-5.1 Neural Engine..."]);
     
     // Inject initialization logs immediately
     setAuditLogs([
@@ -738,11 +752,19 @@ const calculateAccurateMttr = (startTime, endTime) => {
 
   const handleAction = async (type) => {
     if (type === "inject") {
+      // Add real-time timeline entry
+      setHistory(prev => [...prev, "$ Injecting vulnerability into sandbox environment..."]);
+      
       // Capture the current clean code before injecting bug
       setOldCode(code || FALLBACK_CODE);
       setStatus("VULNERABLE");
       setShowDiff(false);
+      
       await axios.post(`${API_BASE}/inject-bug`);
+      
+      // Add completion timeline entry
+      setHistory(prev => [...prev, "$ Bug injection complete - system now vulnerable"]);
+      
       fetchComplexFileContent(currentFile);
     } else {
   try {
@@ -753,6 +775,11 @@ const calculateAccurateMttr = (startTime, endTime) => {
     setShowDiff(false);
     setIsTerminalOpen(true);
 
+    // Add real-time timeline entries
+    setHistory(prev => [...prev, "$ Initializing autonomous repair workflow..."]);
+    setHistory(prev => [...prev, "$ Starting MTTR timer..."]);
+    setHistory(prev => [...prev, "$ Calling GLM-5.1 neural engine for fix generation..."]);
+
     console.log("🚀 Starting repair workflow");
 
     // Start timer
@@ -761,6 +788,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
     // CALL REPAIR API FIRST
     const repairRes = await axios.post(`${API_BASE}/repair`);
 
+    setHistory(prev => [...prev, "$ Repair API call completed successfully"]);
     console.log("✅ Repair API finished");
 
     // NOW fetch repaired file
@@ -778,6 +806,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
       throw new Error("Empty repaired code received");
     }
 
+    setHistory(prev => [...prev, "$ Repaired code loaded successfully"]);
     console.log("✅ Repaired code loaded");
 
     // Update code AFTER successful fetch
@@ -785,6 +814,8 @@ const calculateAccurateMttr = (startTime, endTime) => {
 
     // Show diff now
     setShowDiff(true);
+
+    setHistory(prev => [...prev, "$ Generating code diff visualization..."]);
 
     setHistory(
       Array.isArray(repairRes.data.history)
@@ -796,6 +827,8 @@ const calculateAccurateMttr = (startTime, endTime) => {
 
     const finalTime = stopMttrTimer();
     setImmediateMttrTime(finalTime);
+
+    setHistory(prev => [...prev, `$ Repair completed in ${finalTime} - system restored`]);
 
     setShowSuccessModal(true);
 
