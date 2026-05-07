@@ -76,6 +76,7 @@ function App() {
   const [isRunningFullAudit, setIsRunningFullAudit] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [finalMttrTime, setFinalMttrTime] = useState(0);
+  const [immediateMttrTime, setImmediateMttrTime] = useState("00:00");
   const [showWaitingMessage, setShowWaitingMessage] = useState(false);
   const [currentFile, setCurrentFile] = useState("main.py");
   const [AVAILABLE_FILES, setAvailableFiles] = useState([]);
@@ -325,6 +326,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
     try {
       const res = await axios.get(`${API_BASE}/audit-logs`);
       const newLogs = res.data.logs || [];
+      console.log('📊 Polling: Fetched', newLogs.length, 'logs from backend');
       
       // AGGRESSIVE SUCCESS LISTENER - Log is ground truth!
       if (newLogs.some(log => log.includes('System restored to healthy state'))) {
@@ -346,20 +348,22 @@ const calculateAccurateMttr = (startTime, endTime) => {
         return; // Don't update logs further
       }
       
+      console.log('📝 Updating auditLogs with', newLogs.length, 'entries');
       setAuditLogs(newLogs);
     } catch (err) {
-      console.error("Failed to fetch audit logs");
+      console.error("❌ Failed to fetch audit logs:", err);
     }
   };
 
   const startAuditPolling = () => {
     if (auditPollRef.current) return;
     
+    console.log('🔄 Starting enhanced audit polling every 1 second...');
     // Initial fetch
     fetchAuditLogs();
     
-    // Poll every 2 seconds
-    auditPollRef.current = setInterval(fetchAuditLogs, 2000);
+    // Poll every 1 second for more real-time updates
+    auditPollRef.current = setInterval(fetchAuditLogs, 1000);
   };
 
   const startMttrTimer = () => {
@@ -388,7 +392,9 @@ const calculateAccurateMttr = (startTime, endTime) => {
   if (repairStartTime) {
     const finalTime = calculateAccurateMttr(repairStartTime, end);
     setFinalMttrTime(finalTime);
+    return finalTime; // Return the calculated time for immediate use
   }
+  return "00:00";
 };
 
   const stopAuditPolling = () => {
@@ -422,9 +428,12 @@ const calculateAccurateMttr = (startTime, endTime) => {
     // IMMEDIATE success handling - stop everything and show success
     console.log('🎯 SUCCESS DETECTED IN LOGS - Immediate response!');
     
-    // Stop all monitoring
+    // Stop all monitoring and get final MTTR
     stopAuditPolling();
-    stopMttrTimer();
+    const finalTime = stopMttrTimer();
+    
+    // Set immediate MTTR time for modal
+    setImmediateMttrTime(finalTime);
     
     // Update states immediately
     setIsTestActive(false);
@@ -475,6 +484,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
       setMttrTime(0);
       setMttrStartTime(null);
       setFinalMttrTime(0);
+      setImmediateMttrTime("00:00");
       
       // Stop any running processes
       stopAuditPolling();
@@ -488,6 +498,8 @@ const calculateAccurateMttr = (startTime, endTime) => {
       }
       
       // Step 2: Call /inject-bug
+      // Capture current clean code before bug injection
+      setOldCode(code || FALLBACK_CODE);
       setStatus("VULNERABLE");
       setShowDiff(false);
       await axios.post(`${API_BASE}/inject-bug`);
@@ -500,48 +512,8 @@ const calculateAccurateMttr = (startTime, endTime) => {
       // Step 4: Call /repair
       await axios.post(`${API_BASE}/repair`);
       
-      // Step 5: Start real-time log streaming
-      const eventSource = new EventSource(`${API_BASE}/stream-logs`);
-
-      const handleEventSourceMessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          
-          // APPEND the new log instead of replacing the whole list
-          if (data.log) {
-            setAuditLogs((prevLogs) => [...prevLogs, data.log]);
-            
-            // Check for success in real-time logs
-            if (data.log.includes('System restored to healthy state') || data.log.includes('📈 Autonomous repair completed')) {
-              console.log('🎯 SUCCESS DETECTED IN REAL-TIME STREAM - Force stopping everything!');
-              
-              // Force stop everything immediately
-              eventSource.close();
-              stopMttrTimer();
-              
-              // Force set states
-              setIsTestActive(false);
-              setIsRunningFullAudit(false);
-              setSystemStatus('Healthy');
-              setShowWaitingMessage(false);
-              
-              // Trigger success immediately
-              setShowSuccessModal(true);
-            }
-          }
-        } catch (err) {
-          console.error('Error parsing SSE data:', err);
-        }
-      };
-
-      eventSource.onmessage = handleEventSourceMessage;
-
-      eventSource.onerror = (err) => {
-        console.error("SSE Connection failed:", err);
-        eventSource.close();
-        // Fallback to polling if SSE fails
-        startAuditPolling();
-      };
+      // Step 5: Start enhanced log polling (replacing broken EventSource)
+      startAuditPolling();
       
       // Step 6: Refresh code display after repair starts
       const pollInterval = setInterval(async () => {
@@ -598,6 +570,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
     setFinalMttrTime(0);
+    setImmediateMttrTime("00:00");
   };
 
   const runFullReliabilityAudit = async () => {
@@ -625,6 +598,8 @@ const calculateAccurateMttr = (startTime, endTime) => {
       }
       
       // Step 2: Call /inject-bug
+      // Capture current clean code before bug injection
+      setOldCode(code || FALLBACK_CODE);
       setStatus("VULNERABLE");
       setShowDiff(false);
       await axios.post(`${API_BASE}/inject-bug`);
@@ -756,61 +731,14 @@ const calculateAccurateMttr = (startTime, endTime) => {
   }, [isTestActive, isRepairing]);
 
   useEffect(() => {
-    // Step 5: Start real-time log streaming
-    const eventSource = new EventSource(`${API_BASE}/stream-logs`);
-
-    const handleEventSourceMessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        if (data.log) {
-          setAuditLogs((prevLogs) => [...prevLogs, data.log]);
-          
-          if (data.log.includes('System restored to healthy state') || data.log.includes('📈 Autonomous repair completed')) {
-            console.log('🎯 SUCCESS DETECTED IN REAL-TIME STREAM - Force stopping everything!');
-            eventSource.close();
-            stopMttrTimer();
-            setIsTestActive(false);
-            setIsRunningFullAudit(false);
-            setSystemStatus('Healthy');
-            setShowWaitingMessage(false);
-            setShowSuccessModal(true);
-          }
-        }
-      } catch (err) {
-        console.error('Error parsing SSE data:', err);
-      }
-    };
-
-    eventSource.onmessage = handleEventSourceMessage;
-
-    eventSource.onerror = (err) => {
-      console.error("SSE Connection failed:", err);
-      eventSource.close();
-      startAuditPolling();
-    };
-
-    // Cleanup function
-    return () => {
-      if (eventSource) {
-        eventSource.close();
-      }
-      if (mttrIntervalRef.current) {
-        clearInterval(mttrIntervalRef.current);
-      }
-      if (healthCheckRef.current) {
-        clearInterval(healthCheckRef.current);
-        healthCheckRef.current = null;
-      }
-      if (filePollRef.current) {
-        clearTimeout(filePollRef.current);
-        filePollRef.current = null;
-      }
-    };
+    // Enhanced polling replaces broken EventSource
+    // No EventSource since endpoint doesn't exist
   }, []);
 
   const handleAction = async (type) => {
     if (type === "inject") {
+      // Capture the current clean code before injecting bug
+      setOldCode(code || FALLBACK_CODE);
       setStatus("VULNERABLE");
       setShowDiff(false);
       await axios.post(`${API_BASE}/inject-bug`);
@@ -865,7 +793,8 @@ const calculateAccurateMttr = (startTime, endTime) => {
 
     setStatus("RESTORED");
 
-    stopMttrTimer();
+    const finalTime = stopMttrTimer();
+    setImmediateMttrTime(finalTime);
 
     setShowSuccessModal(true);
 
@@ -1146,34 +1075,46 @@ const calculateAccurateMttr = (startTime, endTime) => {
                         </div>
                       </div>
                     ) : (
-                      <pre className="code-highlighter-reset h-full overflow-auto bg-[#050505] p-4">
-                        <SyntaxHighlighter
-                          language="python"
-                          style={atomDark}
-                          wrapLongLines
-                          wrapLines
-                          className="code-highlighter-reset text-left whitespace-pre-wrap break-words"
-                          lineProps={{
-                            style: {
-                              whiteSpace: "pre-wrap",
-                              wordBreak: "break-word",
+                      <div className="h-full overflow-auto bg-[#050505] p-2">
+                        <ReactDiffViewer
+                          oldValue={oldCode || FALLBACK_CODE}
+                          newValue={code || FALLBACK_CODE}
+                          splitView={false}
+                          useDarkTheme={true}
+                          leftTitle="Before (Buggy Code)"
+                          rightTitle="After (Fixed Code)"
+                          styles={{
+                            variables: {
+                              dark: {
+                                background: '#050505',
+                                highlightBackground: '#1e3a8a',
+                                addedBackground: '#064e3b',
+                                removedBackground: '#7f1d1d',
+                                wordAddedBackground: '#065f46',
+                                wordRemovedBackground: '#991b1b',
+                                addedColor: '#86efac',
+                                removedColor: '#fca5a5',
+                                addedGutterBackground: '#064e3b',
+                                removedGutterBackground: '#7f1d1d',
+                                gutterBackground: '#1f2937',
+                                gutterColor: '#9ca3af',
+                                highlightGutterBackground: '#1e3a8a',
+                                highlightColor: '#bfdbfe',
+                              }
                             },
+                            titleBlock: {
+                              background: '#1f2937',
+                              color: '#f3f4f6',
+                              borderBottom: '1px solid #374151'
+                            },
+                            contentText: {
+                              fontSize: '13px',
+                              fontFamily: "'Fira Code', monospace",
+                              lineHeight: '1.6'
+                            }
                           }}
-                          customStyle={{
-                            background: "transparent",
-                            padding: 0,
-                            margin: 0,
-                            fontSize: "13px",
-                            lineHeight: "1.6",
-                            overflowX: "hidden",
-                            textAlign: "left",
-                            letterSpacing: "normal",
-                            fontFamily: "'Fira Code', monospace",
-                          }}
-                        >
-                          {code || FALLBACK_CODE}
-                        </SyntaxHighlighter>
-                      </pre>
+                        />
+                      </div>
                     )}
                   </div>
                 ) : (
@@ -1291,7 +1232,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
           <SuccessModal
             isOpen={showSuccessModal}
             onClose={handleCloseSuccessModal}
-            mttrTime={finalMttrTime}
+            mttrTime={immediateMttrTime || finalMttrTime}
             auditLogs={auditLogs}
             vulnerabilityType="IndexError"
           />

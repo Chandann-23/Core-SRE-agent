@@ -1,6 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Terminal, Clock, Activity, CheckCircle, XCircle, X } from 'lucide-react';
 
+// Add CSS animation for fade-in effect
+const fadeInStyle = document.createElement('style');
+fadeInStyle.textContent = `
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+`;
+document.head.appendChild(fadeStyle);
+
 const ReliabilityTerminal = ({ 
   isOpen, 
   auditLogs, 
@@ -132,10 +145,16 @@ const ReliabilityTerminal = ({
               auditLogs.map((log, index) => (
                 <div
                   key={index}
-                  className="text-slate-300 text-xs leading-relaxed hover:bg-slate-900/50 px-2 py-1 rounded transition-colors"
+                  className="text-slate-300 text-xs leading-relaxed hover:bg-slate-900/50 px-2 py-1 rounded transition-all duration-300 animate-fadeIn"
+                  style={{
+                    animationDelay: `${index * 50}ms`,
+                    textShadow: index === auditLogs.length - 1 ? '0 0 8px rgba(34, 197, 94, 0.5)' : 'none'
+                  }}
                 >
-                  <span className="text-slate-500">{log.split(']')[0]}]</span>
-                  <span className="ml-2">{log.split(']').slice(1).join(']')}</span>
+                  <span className="text-emerald-500 font-mono">{log.split(']')[0]}]</span>
+                  <span className={`ml-2 ${index === auditLogs.length - 1 ? 'text-white animate-pulse' : 'text-slate-300'}`}>
+                    {log.split(']').slice(1).join(']')}
+                  </span>
                 </div>
               ))
             )}
