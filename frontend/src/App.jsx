@@ -62,6 +62,7 @@ function App() {
   const [isRepairing, setIsRepairing] = useState(false);
   const [status, setStatus] = useState("IDLE");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const lastLogRef = useRef(null);
   
   // Reliability Lab states
@@ -982,13 +983,20 @@ const calculateAccurateMttr = (startTime, endTime) => {
               </button>
             </div>
 
-            <div className="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-4">
+            <div className="flex items-center gap-8">
               <div className="flex flex-col items-center">
                 <div className="text-lg tracking-[0.4em] font-montserrat bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">CORE SRE</div>
                 <div className="mt-0.5 text-[9px] font-medium uppercase tracking-[0.3em] text-slate-500">
                   Autonomous Recovery System
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={() => setIsAboutOpen(true)}
+                className="text-slate-400 hover:text-cyan-400 transition-colors duration-200 text-sm font-medium"
+              >
+                About
+              </button>
             </div>
 
             <div className="flex items-center gap-2">
@@ -1289,7 +1297,71 @@ const calculateAccurateMttr = (startTime, endTime) => {
           </div>
         </div>
       </div>
+    {/* About Modal */}
+      {isAboutOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsAboutOpen(false)} />
+          <div className="relative bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] max-w-2xl w-full max-h-[80vh] overflow-auto p-8">
+            <button
+              type="button"
+              onClick={() => setIsAboutOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+            >
+              <X size={20} />
+            </button>
+            
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold font-montserrat bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent mb-2">
+                CORE SRE: Autonomous Recovery Engine
+              </h2>
+              <p className="text-slate-300 leading-relaxed">
+                A production-grade SRE agent that utilizes <span className="text-cyan-400 font-semibold">GLM-5.1</span> and <span className="text-cyan-400 font-semibold">LangGraph</span> to autonomously detect, analyze, and repair system vulnerabilities in a sandboxed environment.
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-white mb-3">Key Features</h3>
+              <div className="space-y-3 text-slate-300">
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 rounded-full bg-cyan-400 mt-2 flex-shrink-0"></div>
+                  <div>
+                    <span className="font-medium text-white">Real-time MTTR Tracking</span>
+                    <p className="text-sm text-slate-400">Monitor Mean Time To Repair with millisecond precision and live dashboard updates</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 rounded-full bg-cyan-400 mt-2 flex-shrink-0"></div>
+                  <div>
+                    <span className="font-medium text-white">Deep-dependency Scanning</span>
+                    <p className="text-sm text-slate-400">Analyze code dependencies and identify potential vulnerabilities before they impact production</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 rounded-full bg-cyan-400 mt-2 flex-shrink-0"></div>
+                  <div>
+                    <span className="font-medium text-white">Automated Pytest Verification</span>
+                    <p className="text-sm text-slate-400">Run comprehensive test suites to validate repairs and ensure system reliability</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-6 border-t border-white/10">
+              <div className="text-sm text-slate-400">
+                Version 1.0 • Enterprise SRE Dashboard
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAboutOpen(false)}
+                className="px-6 py-2 bg-cyan-500 hover:bg-cyan-400 text-white rounded-md font-medium transition-colors duration-200 active:scale-95"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
 export default App;
