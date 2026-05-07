@@ -889,7 +889,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
     <div className="min-h-screen text-white font-inter flex flex-col" style={{background: '#000000'}}>
       <div className="flex h-full">
         <aside
-          className={`shrink-0 overflow-hidden border border-purple-400/30 bg-purple-950/40 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] transition-all duration-300 ease-in-out ${
+          className={`shrink-0 overflow-hidden border border-purple-400/30 bg-black backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] transition-all duration-300 ease-in-out ${
             isSidebarOpen ? "w-56 p-4 opacity-100" : "w-0 p-0 opacity-0"
           }`}
         >
@@ -971,7 +971,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
         </aside>
 
         <main className="flex min-w-0 flex-1 flex-col">
-          <header className="relative flex h-14 items-center justify-between border border-purple-400/30 bg-black backdrop-blur-3xl px-5">
+          <header className="relative flex h-14 items-center justify-between bg-black backdrop-blur-3xl px-5">
             <div className="flex items-center gap-3">
               <button
                 type="button"

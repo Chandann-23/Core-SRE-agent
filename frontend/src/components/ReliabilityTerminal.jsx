@@ -43,7 +43,7 @@ const ReliabilityTerminal = ({
 
   if (!isOpen) {
     return (
-      <div className="border-t border-white/10 bg-slate-950/80 backdrop-blur-xl p-3">
+      <div className="border-t border-purple-400/30 bg-black backdrop-blur-xl p-3">
         <button
           onClick={onToggle}
           className="flex items-center gap-2 px-4 py-2 bg-[#161B22] border border-white/10 rounded text-slate-300 hover:bg-slate-800 transition-colors text-sm font-inter font-semibold"
