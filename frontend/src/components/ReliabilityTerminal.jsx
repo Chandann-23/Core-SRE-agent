@@ -110,7 +110,7 @@ const ReliabilityTerminal = ({
       </div>
 
       <div className="p-4">
-        <div className="bg-purple-950/60 border border-purple-400/30 p-4 font-mono text-sm">
+        <div className="bg-black border border-purple-400/30 p-4 font-mono text-sm">
           <div className="mb-3 text-purple-300 text-xs font-bold">
             $ CORE SRE Reliability Audit Trail
             {isTestActive && (

@@ -889,7 +889,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
     <div className="min-h-screen text-white font-inter flex flex-col" style={{background: '#000000'}}>
       <div className="flex h-full">
         <aside
-          className={`shrink-0 overflow-hidden border border-white/5 bg-slate-900/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] transition-all duration-300 ease-in-out ${
+          className={`shrink-0 overflow-hidden border border-purple-400/30 bg-purple-950/40 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] transition-all duration-300 ease-in-out ${
             isSidebarOpen ? "w-56 p-4 opacity-100" : "w-0 p-0 opacity-0"
           }`}
         >
@@ -903,7 +903,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
           <button
             type="button"
             onClick={() => setIsSidebarOpen((prev) => !prev)}
-            className="mb-3 flex w-full items-center justify-center rounded-md border border-slate-700 bg-slate-900 py-2 text-slate-300 hover:bg-slate-800"
+            className="mb-3 flex w-full items-center justify-center rounded-md border border-purple-400/30 bg-purple-950/40 py-2 text-purple-300 hover:bg-purple-950/60"
             aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             {isSidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
@@ -913,7 +913,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
             <>
               <div className="mb-3">
                 <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Project</div>
-                <div className="w-full rounded-md border border-slate-800 bg-black/40 px-2 py-2 text-xs font-semibold text-slate-100">
+                <div className="w-full rounded-md border border-purple-400/30 bg-purple-950/40 px-2 py-2 text-xs font-semibold text-purple-300">
                   PROJECT: SRE_SANDBOX
                 </div>
               </div>
@@ -929,8 +929,8 @@ const calculateAccurateMttr = (startTime, endTime) => {
                     onClick={() => onSelectSession(session)}
                     className={`w-full rounded-md px-2 py-2 text-left transition ${
                       selectedSessionId === session.id
-                        ? "border border-slate-700 bg-slate-900 text-slate-100"
-                        : "text-slate-400 hover:bg-slate-900/60 hover:text-slate-200"
+                        ? "border border-purple-400/30 bg-purple-950/40 text-purple-300"
+                        : "text-purple-300 hover:bg-purple-950/60 hover:text-purple-200"
                     }`}
                   >
                     <div className="truncate text-xs font-medium">
@@ -954,14 +954,14 @@ const calculateAccurateMttr = (startTime, endTime) => {
                   </button>
                 ))}
                 {!pastSessions.length && (
-                  <div className="rounded-md border border-dashed border-slate-800 px-2 py-3 text-xs text-slate-500">
+                  <div className="rounded-md border border-dashed border-purple-400/30 px-2 py-3 text-xs text-purple-400">
                     No saved sessions yet.
                   </div>
                 )}
               </div>
               <button
                 type="button"
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800"
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-md border border-purple-400/30 bg-purple-950/40 px-3 py-2 text-sm text-purple-200 hover:bg-purple-950/60"
               >
                 <Plus size={14} />
                 New Session
@@ -971,12 +971,12 @@ const calculateAccurateMttr = (startTime, endTime) => {
         </aside>
 
         <main className="flex min-w-0 flex-1 flex-col">
-          <header className="relative flex h-14 items-center justify-between border border-purple-400/30 bg-purple-950/60 backdrop-blur-3xl px-5">
+          <header className="relative flex h-14 items-center justify-between border border-purple-400/30 bg-black backdrop-blur-3xl px-5">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setIsSidebarOpen((prev) => !prev)}
-                className="inline-flex items-center justify-center rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1.5 font-mono text-xs text-slate-300 hover:bg-slate-800"
+                className="inline-flex items-center justify-center rounded-md border border-purple-400/30 bg-purple-950/40 px-2.5 py-1.5 font-mono text-xs text-purple-300 hover:bg-purple-950/60"
                 aria-label={isSidebarOpen ? "Close history sidebar" : "Open history sidebar"}
               >
                 {isSidebarOpen ? "<<" : ">>"}
@@ -1047,8 +1047,8 @@ const calculateAccurateMttr = (startTime, endTime) => {
                         key={file.name}
                         className={`ml-11 flex items-center gap-2 rounded px-2 py-1 cursor-pointer transition ${
                           currentFile === file.name
-                            ? "bg-slate-900/60 text-cyan-400 border-l-2 border-cyan-500"
-                            : "text-slate-400 hover:bg-slate-900/40 hover:text-slate-200"
+                            ? "bg-purple-950/60 text-purple-400 border-l-2 border-purple-500"
+                            : "text-purple-300 hover:bg-purple-950/40 hover:text-purple-200"
                         }`}
                         onClick={() => fetchComplexFileContent(file.name)}
                       >
@@ -1069,7 +1069,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                       <Folder size={14} />
                       <span className="bg-gradient-to-r from-purple-400 to-violet-600 bg-clip-text text-transparent">app</span>
                     </div>
-                    <div className="ml-11 flex items-center gap-2 rounded bg-slate-900/60 px-2 py-1 text-slate-100">
+                    <div className="ml-11 flex items-center gap-2 rounded bg-purple-950/60 px-2 py-1 text-purple-300">
                       <FileCode size={14} />
                       <span className="text-purple-400">main.py</span>
                     </div>
@@ -1112,7 +1112,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                     type="button"
                     onClick={() => setShowDiff(false)}
                     className={`rounded px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${
-                      !showDiff ? "bg-slate-700 text-slate-100" : "text-slate-400 hover:bg-slate-900"
+                      !showDiff ? "bg-purple-950/60 text-purple-300" : "text-purple-300 hover:bg-purple-950/60"
                     }`}
                   >
                     Source
@@ -1121,7 +1121,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
                     type="button"
                     onClick={() => setShowDiff(true)}
                     className={`rounded px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${
-                      showDiff ? "bg-slate-700 text-slate-100" : "text-slate-400 hover:bg-slate-900"
+                      showDiff ? "bg-purple-950/60 text-purple-300" : "text-purple-300 hover:bg-purple-950/60"
                     }`}
                   >
                     Diff
@@ -1221,7 +1221,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
             </div>
             </div>
 
-            <div className="min-h-0 border border-purple-500/50 bg-purple-950/20 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] p-4">
+            <div className="min-h-0 bg-purple-950/20 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] p-4">
               <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white font-inter">
                 <Terminal size={14} />
                 Terminal / Timeline
@@ -1302,7 +1302,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
       </div>
       
       {/* Debug UI - URL Indicator */}
-      <div className="fixed bottom-20 right-4 z-50 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-lg p-2 text-xs text-slate-400 max-w-xs shadow-[0_8px_32px_0_rgba(0,0,0,0.8)]">
+      <div className="fixed bottom-20 right-4 z-50 bg-black backdrop-blur-xl border border-purple-400/30 rounded-lg p-2 text-xs text-purple-300 max-w-xs shadow-[0_8px_32px_0_rgba(0,0,0,0.8)]">
         <div className="flex items-center space-x-2">
           <div className={`w-2 h-2 rounded-full ${backendStatus.includes('Verified') ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`}></div>
           <div>
