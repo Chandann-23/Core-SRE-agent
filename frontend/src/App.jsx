@@ -278,6 +278,11 @@ function App() {
   const formatTime = (seconds) => {
     if (!seconds || seconds === 0) return "00:00";
     
+    // Handle if input is already a formatted string (like "00:14")
+    if (typeof seconds === 'string') {
+      return seconds; // Return as-is if already formatted
+    }
+    
     // Handle sub-second times
     if (seconds < 1) {
       const ms = Math.round(seconds * 1000);
