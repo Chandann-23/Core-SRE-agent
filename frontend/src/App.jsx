@@ -70,6 +70,8 @@ function App() {
   const [isTestActive, setIsTestActive] = useState(false);
   const [mttrStartTime, setMttrStartTime] = useState(null);
   const [mttrTime, setMttrTime] = useState(0);
+  const [repairStartTime, setRepairStartTime] = useState(null);
+  const [repairEndTime, setRepairEndTime] = useState(null);
   const [systemStatus, setSystemStatus] = useState("Healthy");
   const [isRunningFullAudit, setIsRunningFullAudit] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -302,6 +304,23 @@ function App() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+const calculateAccurateMttr = (startTime, endTime) => {
+  if (!startTime || !endTime) return "00:00";
+
+  const diffMs = endTime - startTime;
+  const totalSeconds = Math.floor(diffMs / 1000);
+
+  const mins = Math.floor(totalSeconds / 60)
+    .toString()
+    .padStart(2, "0");
+
+  const secs = (totalSeconds % 60)
+    .toString()
+    .padStart(2, "0");
+
+  return `${mins}:${secs}`;
+};
+
   const fetchAuditLogs = async () => {
     try {
       const res = await axios.get(`${API_BASE}/audit-logs`);
@@ -321,9 +340,7 @@ function App() {
         setSystemStatus('Healthy');
         setShowWaitingMessage(false);
         
-        // Trigger success immediately with accurate MTTR
-        const accurateMttr = calculateMttrFromLogs();
-        setFinalMttrTime(accurateMttr);
+        // Trigger success immediately
         setShowSuccessModal(true);
         
         return; // Don't update logs further
@@ -346,33 +363,33 @@ function App() {
   };
 
   const startMttrTimer = () => {
-    // Only start timer if not already running
-    if (mttrIntervalRef.current) return;
-    
-    // Add 500ms delay to prevent identical start/stop times
-    setTimeout(() => {
-      const now = Date.now();
-      setMttrStartTime(now);
-      setMttrTime(0);
-      
-      mttrIntervalRef.current = setInterval(() => {
-        setMttrTime(Math.floor((Date.now() - now) / 1000));
-      }, 1000);
-      
-      console.log('⏱️ MTTR timer started with 500ms delay');
-    }, 500);
-  };
+  if (mttrIntervalRef.current) return;
+
+  const start = Date.now();
+
+  setRepairStartTime(start);
+  setMttrTime(0);
+
+  mttrIntervalRef.current = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - start) / 1000);
+    setMttrTime(elapsed);
+  }, 1000);
+};
 
   const stopMttrTimer = () => {
-    try {
-      if (mttrIntervalRef.current) {
-        clearInterval(mttrIntervalRef.current);
-        mttrIntervalRef.current = null;
-      }
-    } catch (err) {
-      console.error("Error stopping MTTR timer:", err);
-    }
-  };
+  if (mttrIntervalRef.current) {
+    clearInterval(mttrIntervalRef.current);
+    mttrIntervalRef.current = null;
+  }
+
+  const end = Date.now();
+  setRepairEndTime(end);
+
+  if (repairStartTime) {
+    const finalTime = calculateAccurateMttr(repairStartTime, end);
+    setFinalMttrTime(finalTime);
+  }
+};
 
   const stopAuditPolling = () => {
     try {
@@ -409,10 +426,6 @@ function App() {
     stopAuditPolling();
     stopMttrTimer();
     
-    // Calculate accurate MTTR from logs
-    const accurateMttr = calculateMttrFromLogs();
-    setFinalMttrTime(accurateMttr);
-    
     // Update states immediately
     setIsTestActive(false);
     setIsRunningFullAudit(false);
@@ -423,35 +436,7 @@ function App() {
     setShowSuccessModal(true);
   };
 
-  const calculateMttrFromLogs = () => {
-    if (auditLogs.length < 2) return "00:00";
-
-    const bugLog = auditLogs.find(l => l.includes('Bug injected'));
-    const restoreLog = auditLogs.find(l => l.includes('System restored'));
-
-    if (!bugLog || !restoreLog) return "00:12"; // Realistic fallback
-
-    try {
-        // Extracting [HH:MM:SS.mmm]
-        const startMatch = bugLog.match(/\[(\d{2}:\d{2}:\d{2})\.\d{3}\]/);
-        const endMatch = restoreLog.match(/\[(\d{2}:\d{2}:\d{2})\.\d{3}\]/);
-
-        if (startMatch && endMatch) {
-            const start = new Date(`1970-01-01T${startMatch[1]}Z`);
-            const end = new Date(`1970-01-01T${endMatch[1]}Z`);
-            const diffSeconds = Math.abs((end - start) / 1000);
-
-            // Force format to MM:SS
-            const mins = Math.floor(diffSeconds / 60).toString().padStart(2, '0');
-            const secs = Math.floor(diffSeconds % 60).toString().padStart(2, '0');
-            return `${mins}:${secs}`;
-        }
-    } catch (e) {
-        return "00:15"; // Safe default
-    }
-    return "00:10";
-  };
-
+  
   const handleResetTimer = () => {
     console.log('🔄 Manual timer reset triggered');
     
@@ -479,15 +464,6 @@ function App() {
         "[00:01] 🔍 Initializing SRE audit pipeline...",
         "[00:02] 🧠 Connecting to GLM-5.1 neural engine..."
       ]);
-      
-      const accurateMttr = calculateMttrFromLogs();
-      setFinalMttrTime(accurateMttr);
-      setShowSuccessModal(true);
-      console.log('🔄 Current showSuccessModal state:', showSuccessModal);
-      
-      // Close the modal
-      setShowSuccessModal(false);
-      console.log('🔄 showSuccessModal set to false');
       
       // Reset all related states for fresh start
       setIsTestActive(false);
@@ -525,47 +501,47 @@ function App() {
       await axios.post(`${API_BASE}/repair`);
       
       // Step 5: Start real-time log streaming
-const eventSource = new EventSource(`${API_BASE}/stream-logs`);
+      const eventSource = new EventSource(`${API_BASE}/stream-logs`);
 
-eventSource.onmessage = (event) => {
-  try {
-    const data = JSON.parse(event.data);
-    
-    // APPEND the new log instead of replacing the whole list
-    if (data.log) {
-      setAuditLogs((prevLogs) => [...prevLogs, data.log]);
-      
-      // Check for success in real-time logs
-      if (data.log.includes('System restored to healthy state') || data.log.includes('📈 Autonomous repair completed')) {
-        console.log('🎯 SUCCESS DETECTED IN REAL-TIME STREAM - Force stopping everything!');
-        
-        // Force stop everything immediately
+      const handleEventSourceMessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          // APPEND the new log instead of replacing the whole list
+          if (data.log) {
+            setAuditLogs((prevLogs) => [...prevLogs, data.log]);
+            
+            // Check for success in real-time logs
+            if (data.log.includes('System restored to healthy state') || data.log.includes('📈 Autonomous repair completed')) {
+              console.log('🎯 SUCCESS DETECTED IN REAL-TIME STREAM - Force stopping everything!');
+              
+              // Force stop everything immediately
+              eventSource.close();
+              stopMttrTimer();
+              
+              // Force set states
+              setIsTestActive(false);
+              setIsRunningFullAudit(false);
+              setSystemStatus('Healthy');
+              setShowWaitingMessage(false);
+              
+              // Trigger success immediately
+              setShowSuccessModal(true);
+            }
+          }
+        } catch (err) {
+          console.error('Error parsing SSE data:', err);
+        }
+      };
+
+      eventSource.onmessage = handleEventSourceMessage;
+
+      eventSource.onerror = (err) => {
+        console.error("SSE Connection failed:", err);
         eventSource.close();
-        stopMttrTimer();
-        
-        // Force set states
-        setIsTestActive(false);
-        setIsRunningFullAudit(false);
-        setSystemStatus('Healthy');
-        setShowWaitingMessage(false);
-        
-        // Trigger success immediately with accurate MTTR
-        const accurateMttr = calculateMttrFromLogs();
-        setFinalMttrTime(accurateMttr);
-        setShowSuccessModal(true);
-      }
-    }
-  } catch (err) {
-    console.error('Error parsing SSE data:', err);
-  }
-};
-
-eventSource.onerror = (err) => {
-  console.error("SSE Connection failed:", err);
-  eventSource.close();
-  // Fallback to polling if SSE fails
-  startAuditPolling();
-};
+        // Fallback to polling if SSE fails
+        startAuditPolling();
+      };
       
       // Step 6: Refresh code display after repair starts
       const pollInterval = setInterval(async () => {
@@ -603,7 +579,7 @@ eventSource.onerror = (err) => {
           }
         }
       }, 180000);
-      } catch (err) {
+  } catch (err) {
       console.error("Full audit failed:", err);
       setIsRunningFullAudit(false);
       setIsTestActive(false);
@@ -777,11 +753,13 @@ eventSource.onerror = (err) => {
     } else {
       document.title = "CORE SRE | Autonomous Recovery System";
     }
-    
+  }, [isTestActive, isRepairing]);
+
+  useEffect(() => {
     // Step 5: Start real-time log streaming
     const eventSource = new EventSource(`${API_BASE}/stream-logs`);
 
-    eventSource.onmessage = (event) => {
+    const handleEventSourceMessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         
@@ -796,8 +774,6 @@ eventSource.onerror = (err) => {
             setIsRunningFullAudit(false);
             setSystemStatus('Healthy');
             setShowWaitingMessage(false);
-            const accurateMttr = calculateMttrFromLogs();
-            setFinalMttrTime(accurateMttr);
             setShowSuccessModal(true);
           }
         }
@@ -805,6 +781,8 @@ eventSource.onerror = (err) => {
         console.error('Error parsing SSE data:', err);
       }
     };
+
+    eventSource.onmessage = handleEventSourceMessage;
 
     eventSource.onerror = (err) => {
       console.error("SSE Connection failed:", err);
@@ -829,7 +807,7 @@ eventSource.onerror = (err) => {
         filePollRef.current = null;
       }
     };
-  }, [isTestActive, isRepairing]);
+  }, []);
 
   const handleAction = async (type) => {
     if (type === "inject") {
@@ -838,50 +816,70 @@ eventSource.onerror = (err) => {
       await axios.post(`${API_BASE}/inject-bug`);
       fetchComplexFileContent(currentFile);
     } else {
-      setOldCode(code || FALLBACK_CODE);
-      setIsRepairing(true);
-      setStatus("REPAIRING");
-      setIsTerminalOpen(true);
-      
-      // Start polling for the repaired file content
-      console.log(`🔧 [Repair] Starting repair process for ${currentFile}`);
-      
-      // First validate that we can get meaningful content after repair
-      const validationResult = await validateDiffContent(currentFile);
-      
-      if (validationResult.success) {
-        console.log(`✅ [Repair] Validation passed - setting new content`);
-        setCode(validationResult.content);
-        setCurrentFile(validationResult.filename);
-      } else {
-        console.log(`❌ [Repair] Validation failed - using fallback polling`);
-        await pollFileContent(currentFile);
-      }
-      
-      try {
-        const res = await axios.post(`${API_BASE}/repair`);
-        setHistory(Array.isArray(res.data.history) ? res.data.history : []);
-        
-        // Validate final result
-        if (res.data.final_code && res.data.final_code.trim() !== '') {
-          setCode(res.data.final_code);
-          setShowDiff(true);
-          setStatus("RESTORED");
-          setMttrTime(res.data.mttr_time || 0);
-          setFinalMttrTime(res.data.mttr_time || 0);
-          setShowSuccessModal(true);
-        } else {
-          console.log(`❌ [Repair] Final result validation failed - retrying content fetch`);
-          await pollFileContent(currentFile);
-        }
-      } catch (err) {
-        console.error('Repair failed:', err);
-        setStatus("FAILED");
-      } finally {
-        setIsRepairing(false);
-      }
+  try {
+    setOldCode(code || FALLBACK_CODE);
+
+    setIsRepairing(true);
+    setStatus("REPAIRING");
+    setShowDiff(false);
+    setIsTerminalOpen(true);
+
+    console.log("🚀 Starting repair workflow");
+
+    // Start timer
+    startMttrTimer();
+
+    // CALL REPAIR API FIRST
+    const repairRes = await axios.post(`${API_BASE}/repair`);
+
+    console.log("✅ Repair API finished");
+
+    // NOW fetch repaired file
+    const fileRes = await apiCall(
+      "get",
+      `/get-file/complex_sandbox/app/${currentFile}` 
+    );
+
+    const repairedCode =
+      fileRes?.data?.content ||
+      repairRes?.data?.final_code ||
+      "";
+
+    if (!repairedCode || repairedCode.trim() === "") {
+      throw new Error("Empty repaired code received");
     }
-  };
+
+    console.log("✅ Repaired code loaded");
+
+    // Update code AFTER successful fetch
+    setCode(repairedCode);
+
+    // Show diff now
+    setShowDiff(true);
+
+    setHistory(
+      Array.isArray(repairRes.data.history)
+        ? repairRes.data.history
+        : []
+    );
+
+    setStatus("RESTORED");
+
+    stopMttrTimer();
+
+    setShowSuccessModal(true);
+
+  } catch (err) {
+    console.error("Repair failed:", err);
+
+    stopMttrTimer();
+
+    setStatus("FAILED");
+  } finally {
+    setIsRepairing(false);
+  }
+    }
+  }
 
   const timelineEntries = history.flatMap((entry, index) => {
     const text = String(entry ?? "").trim();
@@ -1111,7 +1109,7 @@ eventSource.onerror = (err) => {
                 )}
               </div>
             </div>
-
+            
             <div className="relative flex min-h-0 flex-col border-b border-r border-[#21262D] bg-[#050505] lg:border-b-0">
               <div className="flex items-center justify-between border-b border-[#21262D] px-4 py-3">
                 <div className="text-xs text-slate-400 font-inter">{currentFile || 'complex_sandbox/app/main.py'}</div>
@@ -1145,29 +1143,37 @@ eventSource.onerror = (err) => {
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
                         <div className="text-slate-400 text-center">
                           <div className="text-lg font-medium mb-2">SRE Analysis in Progress</div>
-                          <div className="text-sm">{repairStatus}</div>
-                          <div className="text-xs text-slate-500 mt-2">Backend Verified: simple_api logic active</div>
                         </div>
                       </div>
                     ) : (
-                      <ReactDiffViewer
-                        oldValue={oldCode || ""}
-                        newValue={code || FALLBACK_CODE}
-                        splitView
-                        useDarkTheme
-                        leftTitle="Before"
-                        rightTitle="After"
-                        styles={{
-                          titleText: {
-                            background: "#050505",
-                          },
-                          contentText: {
-                            fontFamily: "'Fira Code', monospace",
+                      <pre className="code-highlighter-reset h-full overflow-auto bg-[#050505] p-4">
+                        <SyntaxHighlighter
+                          language="python"
+                          style={atomDark}
+                          wrapLongLines
+                          wrapLines
+                          className="code-highlighter-reset text-left whitespace-pre-wrap break-words"
+                          lineProps={{
+                            style: {
+                              whiteSpace: "pre-wrap",
+                              wordBreak: "break-word",
+                            },
+                          }}
+                          customStyle={{
+                            background: "transparent",
+                            padding: 0,
+                            margin: 0,
                             fontSize: "13px",
-                            lineHeight: 1.6,
-                          },
-                        }}
-                      />
+                            lineHeight: "1.6",
+                            overflowX: "hidden",
+                            textAlign: "left",
+                            letterSpacing: "normal",
+                            fontFamily: "'Fira Code', monospace",
+                          }}
+                        >
+                          {code || FALLBACK_CODE}
+                        </SyntaxHighlighter>
+                      </pre>
                     )}
                   </div>
                 ) : (
@@ -1200,13 +1206,13 @@ eventSource.onerror = (err) => {
                     </SyntaxHighlighter>
                   </pre>
                 )}
-              </div>
               {isRepairing && (
                 <div className="pointer-events-none absolute inset-x-0 top-[45px] bottom-0 overflow-hidden">
                   <div className="absolute inset-0 animate-[editorPulse_2.8s_ease-in-out_infinite] bg-cyan-400/5" />
                   <div className="h-12 w-full animate-[scan_2.2s_linear_infinite] bg-gradient-to-b from-transparent via-cyan-400/15 to-transparent" />
                 </div>
               )}
+            </div>
             </div>
 
             <div className="min-h-0 p-4">
