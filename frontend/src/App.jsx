@@ -971,7 +971,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
         </aside>
 
         <main className="flex min-w-0 flex-1 flex-col">
-          <header className="relative flex h-14 items-center justify-between border border-purple-400/30 bg-purple-950/60 backdrop-blur-3xl shadow-[0_0_20px_rgba(139,92,246,0.2)] px-5">
+          <header className="relative flex h-14 items-center justify-between border border-purple-400/30 bg-purple-950/60 backdrop-blur-3xl px-5">
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -1031,7 +1031,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
           </header>
 
           <section className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_340px]">
-            <div className="min-h-0 border border-purple-500/50 bg-purple-950/20 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] p-4 lg:border-b-0">
+            <div className="min-h-0 bg-purple-950/20 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] p-4 lg:border-b-0">
               <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400 font-inter">Explorer</div>
               <div className="space-y-1 text-sm">
                 {/* Dynamic File Tree from API */}
@@ -1096,7 +1096,7 @@ const calculateAccurateMttr = (startTime, endTime) => {
               </div>
             </div>
             
-            <div className="relative flex min-h-0 flex-col border border-purple-400/30 bg-purple-950/40 backdrop-blur-3xl shadow-[0_0_20px_rgba(139,92,246,0.3)] rounded-lg lg:border-b-0">
+            <div className="relative flex min-h-0 flex-col border border-purple-400/30 bg-purple-950/40 backdrop-blur-3xl rounded-lg lg:border-b-0">
               <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1.5">
