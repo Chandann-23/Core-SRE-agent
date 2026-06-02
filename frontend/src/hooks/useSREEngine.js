@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:7860";
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "https://chandann-23-core-sre-backend.hf.space" : "http://localhost:7860");
 const WS_BASE = API_BASE.replace(/^http/, 'ws');
 
 const defaultTests = [

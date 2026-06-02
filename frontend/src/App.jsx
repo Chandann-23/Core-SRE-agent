@@ -10,7 +10,7 @@ import InfrastructureMap from "./components/InfrastructureMap";
 import UnitTestMatrix from "./components/UnitTestMatrix";
 import { useSREEngine } from "./hooks/useSREEngine";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:7860";
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "https://chandann-23-core-sre-backend.hf.space" : "http://localhost:7860");
 
 function App() {
   const {
