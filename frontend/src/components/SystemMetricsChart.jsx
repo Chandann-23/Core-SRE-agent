@@ -83,12 +83,12 @@ export default function SystemMetricsChart({ status }) {
         <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="absolute inset-0">
           <defs>
             <linearGradient id="gradTraffic" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+              <stop offset="0%" stopColor="#22c55e" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
             </linearGradient>
             <linearGradient id="gradError" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ef4444" stopOpacity="0.5" />
-              <stop offset="100%" stopColor="#ef4444" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.0" />
             </linearGradient>
           </defs>
 
@@ -106,23 +106,23 @@ export default function SystemMetricsChart({ status }) {
             />
           ))}
 
-          {/* Traffic Data (Blue) */}
+          {/* Traffic Data (Green) */}
           <path d={trafficArea} fill="url(#gradTraffic)" />
-          <path d={trafficPath} fill="none" stroke="#2563eb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d={trafficPath} fill="none" stroke="#16a34a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
 
-          {/* Error Rate Data (Red) */}
+          {/* Error Rate Data (Blue) */}
           <path d={errorArea} fill="url(#gradError)" />
-          <path d={errorPath} fill="none" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d={errorPath} fill="none" stroke="#2563eb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
 
         {/* Legend */}
         <div className="absolute top-0 right-4 flex flex-col items-end z-10 pointer-events-none text-[9px] font-mono tracking-widest bg-[#0A0A0F]/80 p-1.5 rounded border border-[#2A2B3D] mt-1">
             <span className="text-gray-300 mb-1 flex items-center">
-               <span className="w-2 h-2 rounded-sm bg-blue-600 mr-2"></span>
+               <span className="w-2 h-2 rounded-sm bg-green-600 mr-2"></span>
                TRAFFIC: <strong className="ml-1 text-white">{Math.round(data[data.length - 1].traffic)} RPS</strong>
             </span>
             <span className="text-gray-300 flex items-center">
-               <span className="w-2 h-2 rounded-sm bg-red-600 mr-2"></span>
+               <span className="w-2 h-2 rounded-sm bg-blue-600 mr-2"></span>
                ERRORS: <strong className="ml-1 text-white">{data[data.length - 1].errorRate.toFixed(1)}%</strong>
             </span>
         </div>
