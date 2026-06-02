@@ -1,3 +1,13 @@
+---
+title: Core Sre Backend
+emoji: 🚀
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 <div align="center">
   <img src="https://img.shields.io/badge/Status-Fully%20Operational-emerald?style=for-the-badge&logo=status" alt="Status" />
   <img src="https://img.shields.io/badge/Architecture-FastAPI%20%2B%20React-blue?style=for-the-badge" alt="Architecture" />
