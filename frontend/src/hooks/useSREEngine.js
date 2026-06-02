@@ -12,10 +12,26 @@ const defaultTests = [
   { name: "test_db_deadlock", status: "pass" }
 ];
 
+const initialHistory = [
+  "$ Initializing CORE SRE Engine v2.4.1...",
+  "$ Connecting to financial telemetry stream...",
+  "$ Sandbox environment mapped & verified",
+  "$ System status: OPTIMAL",
+  "$ Awaiting anomaly triggers..."
+];
+
+const initialAuditLogs = [
+  "Engine boot sequence initiated",
+  "Loaded heuristics engine: GLM-4 Neural Core",
+  "Sandbox environment mapped to isolated Docker container",
+  "Monitoring financial gateway on port 7860",
+  "System fully operational. Zero anomalies detected."
+];
+
 export function useSREEngine() {
-  const [status, setStatus] = useState("HEALTHY"); // HEALTHY, VULNERABLE, REPAIRING, RESTORED, FAILED
-  const [history, setHistory] = useState([]);
-  const [auditLogs, setAuditLogs] = useState([]);
+  const [status, setStatus] = useState("HEALTHY");
+  const [history, setHistory] = useState(initialHistory);
+  const [auditLogs, setAuditLogs] = useState(initialAuditLogs);
   const [code, setCode] = useState("");
   const [oldCode, setOldCode] = useState("");
   const [mttrTime, setMttrTime] = useState("00:00");
@@ -164,12 +180,13 @@ export function useSREEngine() {
   };
 
   const resetSystem = () => {
-    stopMttrTimer();
     setStatus("HEALTHY");
-    setHistory([]);
-    setAuditLogs([]);
+    setHistory(initialHistory);
+    setAuditLogs(initialAuditLogs);
     setMttrTime("00:00");
     setFinalMttrTime("00:00");
+    setTestResults(defaultTests);
+    stopMttrTimer();
     fetchFileContent("main.py");
   };
 
