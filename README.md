@@ -1,73 +1,126 @@
----
-title: Core Sre Backend
-emoji: 🚀
-colorFrom: blue
-colorTo: indigo
-sdk: docker
-app_port: 7860
-pinned: false
----
+<div align="center">
+  <img src="https://img.shields.io/badge/Status-Fully%20Operational-emerald?style=for-the-badge&logo=status" alt="Status" />
+  <img src="https://img.shields.io/badge/Architecture-FastAPI%20%2B%20React-blue?style=for-the-badge" alt="Architecture" />
+  <img src="https://img.shields.io/badge/AI_Engine-GLM--4-purple?style=for-the-badge" alt="AI Engine" />
+  <img src="https://img.shields.io/badge/Deployment-Vercel%20%2B%20HuggingFace-black?style=for-the-badge&logo=vercel" alt="Deployment" />
 
-# CORE SRE: Autonomous Recovery Engine
+  <br />
+  <br />
 
-**CORE SRE** is a production-grade Site Reliability Engineering (SRE) agent designed to autonomously detect, analyze, and repair system vulnerabilities within a sandboxed environment. By leveraging the power of **GLM-5.1** and **LangGraph**, the system moves beyond simple monitoring to active, code-level remediation.
+  <h1>CORE SRE </h1>
+  <h3>Autonomous AI Recovery System</h3>
+  <p>A next-generation, self-healing infrastructure dashboard that detects, analyzes, and autonomously patches critical vulnerabilities in real-time.</p>
 
----
+  <br />
+</div>
 
 ## 🚀 Overview
 
-In modern distributed systems, Mean Time To Repair (MTTR) is the most critical metric. **CORE SRE** minimizes this by automating the entire incident response lifecycle:
+**CORE SRE** is an enterprise-grade Autonomous Site Reliability Engineering (SRE) engine. It bridges the gap between observability and automated incident response by utilizing a real-time WebSocket architecture and Large Language Models (GLM-4) to autonomously detect system failures, generate heuristic code patches, and deploy fixes with human-in-the-loop approval.
 
-*   **Detection**: Constant monitoring of system telemetry and tracebacks.
-*   **Injection**: Capability to simulate realistic vulnerabilities (e.g., `IndexError`, `TypeError`) for testing and validation.
-*   **Analysis**: Utilizes a specialized AI brain to perform deep dependency scanning and root-cause analysis.
-*   **Repair**: Generates and applies atomic code patches to the source files.
-*   **Verification**: Automatically triggers **Pytest** suites to ensure the patch is sound before declaring the system "Healthy".
+This project demonstrates advanced full-stack capabilities, real-time data synchronization, dynamic state management, and modern UI/UX design paradigms.
 
----
+## ✨ Key Features
 
-## 🛠️ Technical Stack
+- **Live Telemetry & Traffic Modeling**: Custom-built SVG charting system implementing a constrained random-walk algorithm to simulate live financial gateway traffic and error rates with zero-latency rendering.
+- **Real-Time Unit Test Matrix**: Live-updating test suite grid that syncs with backend heuristics via WebSockets to visually demonstrate test failures and autonomous test restoration.
+- **Monaco Engine Code Diffing**: Integrated Microsoft Monaco Editor (VS Code engine) displaying real-time code diffs (`oldCode` vs `newCode`) of the AI-generated patches before deployment.
+- **Asynchronous WebSocket Architecture**: Fully decoupled architecture where the FastAPI backend streams audit logs, sandbox metrics, and deployment statuses directly to the React frontend.
+- **Human-in-the-Loop (HITL) Workflow**: Enforces strict deployment gates. The AI generates the patch, but human approval is required before the automated regression tests and production deployment phase begin.
 
-*   **Brain**: GLM-5.1 Neural Engine & LangGraph for agentic workflows.
-*   **Backend**: FastAPI (Python 3.10) hosted on Hugging Face Spaces.
-*   **Frontend**: Next.js & React with a custom **Astra-inspired Glassmorphism** UI.
-*   **Infrastructure**: Sandboxed execution environment for safe code manipulation.
-*   **Styling**: Tailwind CSS with a strict "Obsidian & Amethyst" professional palette.
+## 🛠️ Technology Stack
 
----
+**Frontend (Client Node)**
+- React 19 + Vite
+- Tailwind CSS v4 (Custom dark mode tokens, micro-animations)
+- Framer Motion (State transitions)
+- Monaco Editor (Code diffing and syntax highlighting)
+- Custom SVG Data Visualizations
 
-## 📁 Project Structure
+**Backend (Agent Node)**
+- Python 3.10+
+- FastAPI (REST & WebSocket endpoints)
+- Uvicorn (ASGI Server)
+- LiteLLM (LLM Abstraction Layer)
 
-*   `frontend/`: Next.js application featuring real-time audit trails and VS Code-style IDE integration.
-*   `tests/`: Comprehensive Python test suite for system verification and MTTR accuracy.
-*   `core_logic.py`: The heart of the SRE agent, managing the LangGraph repair cycles.
-*   `simple_api.py`: FastAPI endpoints for bug injection, repair triggers, and live log streaming.
+**Infrastructure / DevOps**
+- Vercel (Edge Frontend Deployment)
+- HuggingFace Spaces (Dockerized Backend Deployment)
+- Git (Version Control)
 
----
+## 🏗️ System Architecture
 
-## 📊 Key Features
+```mermaid
+graph LR
+    subgraph Frontend [React / Vercel]
+        UI[Dashboard UI]
+        Metrics[Telemetry Chart]
+        Tests[Live Unit Tests]
+        Diff[Monaco Diff Viewer]
+    end
 
-*   **Real-time Audit Trail**: A live terminal feed that streams agent thoughts and actions as they happen.
-*   **Automated MTTR Tracking**: Precise calculation of recovery time, displayed in a professional dashboard interface.
-*   **Functional Diff Viewer**: High-contrast, code-level comparison of the "Buggy" vs. "Repaired" states.
-*   **Glassmorphism UI**: A high-end developer experience utilizing deep blurs, pure black backgrounds, and purple accents.
+    subgraph Backend [FastAPI / HuggingFace]
+        WS[WebSocket Manager]
+        LLM[GLM-4 AI Agent]
+        Sandbox[Execution Sandbox]
+    end
 
----
-
-## 🏁 Getting Started
-
-1.  **Clone the Repository**:
-    ```bash
-    git clone https://github.com/Chandann-23/Core-SRE-agent.git
+    UI <-->|HTTP REST /ws| WS
+    Metrics <-->|Real-time Data| WS
+    Tests <-->|Test States| WS
     
+    WS --> LLM
+    LLM --> Sandbox
+    Sandbox -->|Results| WS
 ```
-2.  **Install Dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    npm install
-    ```
-3.  **Run the Engine**:
-    *   Start the backend: `python simple_api.py`
-    *   Start the frontend: `npm run dev`
+
+## 💻 Local Development
+
+### Prerequisites
+- Node.js 18+
+- Python 3.10+
+
+### 1. Start the Backend (FastAPI)
+```bash
+# Clone the repository
+git clone https://github.com/Chandann-23/core-sre-agent.git
+cd core-sre-agent
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Start the FastAPI server (runs on port 7860)
+python simple_api.py
+```
+
+### 2. Start the Frontend (React/Vite)
+```bash
+# Open a new terminal tab
+cd core-sre-agent/frontend
+
+# Install NPM dependencies
+npm install
+
+# Start the Vite development server
+npm run dev
+```
+Navigate to `http://localhost:5173` to view the dashboard.
+
+## 🔒 Environment Variables
+
+To enable the autonomous AI patch generation, you need to provide a valid API key. If no key is provided, the system gracefully falls back to a deterministic **Mock Repair Mode** for demonstration purposes.
+
+```env
+ZHIPUAI_API_KEY=your_api_key_here
+```
+
+To configure the frontend to point to a specific backend in production, set the following environment variable in your Vercel deployment:
+```env
+VITE_API_URL=https://your-backend-url.com
+```
+*(Note: The frontend automatically detects the `PROD` environment and defaults to the HuggingFace backend space).*
 
 ---
+<div align="center">
+  <i>Engineered for Next-Gen Infrastructure.</i>
+</div>
