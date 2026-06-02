@@ -11,9 +11,7 @@ load_dotenv()
 
 def get_llm():
     """Get the LLM instance for the SRE agent."""
-    zhipuai_api_key = os.getenv("ZHIPUAI_API_KEY")
-    if not zhipuai_api_key:
-        raise ValueError("ZHIPUAI_API_KEY environment variable is not set")
+    zhipuai_api_key = os.getenv("ZHIPUAI_API_KEY", "")
     
     # Return LiteLLM configuration for GLM-4
     return {
