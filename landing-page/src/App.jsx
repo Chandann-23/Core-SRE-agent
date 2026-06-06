@@ -40,32 +40,32 @@ export default function App() {
     {
       icon: <ShieldAlert className="w-8 h-8 text-rose-400" />,
       title: "Autonomous Incident Remediation",
-      desc: "When production anomalies strike, CORE SRE's neural cycle isolates the sandbox, traces the exact failure traceback, and writes atomic, type-safe patches using GLM-4 reasoning heuristics."
+      desc: "When production errors occur, CORE SRE triggers a LangGraph state machine. It isolates the sandbox environment, ingests pytest stack traces, and drafts atomic code repairs using GLM-4 reasoning."
     },
     {
       icon: <Zap className="w-8 h-8 text-amber-400" />,
-      title: "Real-Time Verification Matrix",
-      desc: "An active, live-updating unit testing grid dynamically renders testing cycles. It visually proves that the generated code repairs resolve the anomaly without introducing regressions."
+      title: "Live Unit Test Matrix",
+      desc: "The dashboard displays a live-updating Unit Test Matrix that renders passing/failing states for key integration checks (such as tax calculations and payment processing) in real-time."
     },
     {
       icon: <Layers className="w-8 h-8 text-cyan-400" />,
-      title: "Microsoft Monaco Diffing",
-      desc: "Enforces strict human-in-the-loop gates. Developers can visually audit exact side-by-side git diffs of the AI's proposed repairs in a full VS Code-style editor before execution."
+      title: "Monaco Diff Editor Integration",
+      desc: "Integrates a fully interactive VS Code-style Monaco Diff Editor that shows side-by-side git comparisons of the buggy vs. proposed repaired code. Enforces strict Human-in-the-Loop (HITL) gates."
     },
     {
       icon: <Activity className="w-8 h-8 text-emerald-400" />,
-      title: "Zero-Latency Live Telemetry",
-      desc: "Models real-time operational API workloads and error rate fluctuations. Employs a constrained random-walk simulation streamed instantly to the frontend client via high-throughput WebSockets."
+      title: "Real-Time Telemetry Dashboard",
+      desc: "Simulates live financial gateway traffic volume and error rate spikes using a constrained random-walk algorithm, streamed instantly to the frontend dashboard via FastAPI WebSockets."
     },
     {
       icon: <Cpu className="w-8 h-8 text-violet-400" />,
-      title: "Decoupled Edge Architecture",
-      desc: "Combines the rapid reactivity of Vercel Edge deployments for static layouts with a containerized ASGI FastAPI backend hosted in a safe execution space on HuggingFace."
+      title: "Decoupled Architecture",
+      desc: "Features a modern React client deployed on Vercel communicating with a containerized Python FastAPI ASGI backend hosted on Hugging Face Spaces, ensuring complete separation of concerns."
     },
     {
       icon: <Brain className="w-8 h-8 text-pink-400" />,
-      title: "Self-Healing Observability Loop",
-      desc: "Creates a constant, non-blocking polling cycle that observes system logs, registers healthy state restorations, and updates telemetry charts as soon as all unit tests pass."
+      title: "WebSocket Audit Trail",
+      desc: "Streams the SRE Audit Trail, container lifecycle events, and test execution timelines directly to the client console, providing instant visibility into the self-healing loops."
     }
   ];
 
@@ -73,50 +73,50 @@ export default function App() {
     {
       step: "01",
       title: "Real-time Telemetry Observability",
-      desc: "System tracks operational metrics, modeling API traffic flow and charting error rate fluctuations dynamically."
+      desc: "The dashboard monitors live gateway telemetry, rendering traffic volume and error rate spikes in a real-time SVG chart via WebSockets."
     },
     {
       step: "02",
       title: "Sandbox Incident Replication",
-      desc: "On failure, the incident is captured. The system automatically mirrors the buggy codebase environment inside a secure execution sandbox."
+      desc: "When a bug is injected or detected, the backend provisions an isolated sandbox folder containing the target codebase (main.py)."
     },
     {
       step: "03",
       title: "Agentic Neural Repair Cycle",
-      desc: "GLM-4 multi-agent chains evaluate stdout/tracebacks, conduct deep dependency analysis, and draft clean code resolutions."
+      desc: "The LangGraph orchestration engine runs an analysis node that processes error tracebacks via LiteLLM and GLM-4, drafting a code correction."
     },
     {
       step: "04",
       title: "Regression Test & Deployment",
-      desc: "Runs automated Pytest files in the sandbox. Upon successful regression pass and human approval, SRE health metrics are fully restored."
+      desc: "The executor node applies the patch and runs Pytest suites in the sandbox. After human approval, metrics return to optimal health."
     }
   ];
 
-  const featuredProjects = [
+  const coreModules = [
     {
-      title: "ASTRA Intelligence",
-      desc: "A premium, next-generation Agentic Research Platform. Translates unstructured web data into structured knowledge graphs via GraphRAG pipelines and Llama 3.3.",
-      tech: ["FastAPI", "React", "GraphRAG", "Llama 3.3"]
+      title: "LangGraph SRE Workflow Engine",
+      desc: "An agentic state machine implementing separate analysis and execution nodes to run multi-turn self-healing code repair cycles.",
+      tech: ["LangGraph", "Python", "LiteLLM", "GLM-4"]
     },
     {
-      title: "Dual-Phase Memory Consolidation",
-      desc: "A cognitive-inspired artificial memory consolidation framework implementing Reinforcement Learning (Q-Learning) to optimize long/short-term LLM context layers.",
-      tech: ["Python", "Q-Learning", "Context Management", "AI"]
+      title: "Asynchronous WebSocket Control Plane",
+      desc: "FastAPI-powered real-time WebSocket connection to stream live container stdout, execution timeline, and system state transitions.",
+      tech: ["FastAPI", "WebSockets", "Python", "ASGI"]
     },
     {
-      title: "Neuro Linker",
-      desc: "A production-grade AI platform that transforms unstructured resume documents into high-dimensional vector embeddings, achieving sub-100ms semantic search.",
-      tech: ["Streamlit", "TypeScript", "Vector Search", "LLMs"]
+      title: "Isolated Test Sandbox",
+      desc: "A secure local execution playground containing target application files (main.py, utils.py) and regression testing suites.",
+      tech: ["Docker", "Python", "Pytest", "Subprocess"]
     },
     {
-      title: "AI Gesture Communicator",
-      desc: "An intelligent, real-time hand-landmark detection application translating sign language to speech/text to bridge critical communication accessibility gaps.",
-      tech: ["Python", "MediaPipe", "Computer Vision", "AI"]
+      title: "Monaco Diff Editor Integration",
+      desc: "High-fidelity, interactive code viewer that enables side-by-side git diff comparisons of AI-generated repairs for human verification.",
+      tech: ["React", "Monaco Editor", "Vite", "JavaScript"]
     },
     {
-      title: "AXON Predictive Engine",
-      desc: "A distributed Industrial IoT monitoring suite built with a containerized FastAPI backend, serverless Postgres (Neon), and Streamlit telemetry visualization.",
-      tech: ["FastAPI", "Docker", "PostgreSQL", "Streamlit"]
+      title: "Live Observability Telemetry",
+      desc: "SVG data visualizations rendering financial gateway workloads, error rate trends, and mean time to repair (MTTR) scoring.",
+      tech: ["React", "TailwindCSS", "SVG", "Framer Motion"]
     }
   ];
 
@@ -406,11 +406,11 @@ export default function App() {
             <div className="lg:col-span-7 space-y-6">
               <h4 className="text-lg font-bold uppercase tracking-wider text-gray-500 flex items-center gap-2">
                 <Layers className="w-4.5 h-4.5 text-cyan-400" />
-                Technical Arsenal &amp; Pinned Systems
+                Core Systems &amp; Architecture Modules
               </h4>
               
               <div className="grid gap-4.5">
-                {featuredProjects.map((proj, idx) => (
+                {coreModules.map((proj, idx) => (
                   <div 
                     key={idx}
                     className="p-5.5 rounded-xl border border-white/5 bg-[#050508] hover:border-cyan-500/20 transition-all flex flex-col justify-between"
