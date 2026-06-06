@@ -92,31 +92,26 @@ export default function App() {
     }
   ];
 
-  const coreModules = [
+  const featuredSystems = [
     {
-      title: "LangGraph SRE Workflow Engine",
-      desc: "An agentic state machine implementing separate analysis and execution nodes to run multi-turn self-healing code repair cycles.",
-      tech: ["LangGraph", "Python", "LiteLLM", "GLM-4"]
+      title: "ASTRA Intelligence",
+      desc: "Full-Stack Platform & RAG Workflow Deployed a comprehensive multi-agent workspace integrating advanced retrieval-augmented generation and reactive, glassmorphism-styled dashboard elements.",
+      tech: ["FastAPI", "LangChain", "React", "TailwindCSS"]
     },
     {
-      title: "Asynchronous WebSocket Control Plane",
-      desc: "FastAPI-powered real-time WebSocket connection to stream live container stdout, execution timeline, and system state transitions.",
-      tech: ["FastAPI", "WebSockets", "Python", "ASGI"]
+      title: "CORE SRE",
+      desc: "Autonomous Site Reliability System Built an autonomous infrastructure recovery layer utilizing LangGraph and FastAPI architecture for intelligent, dual-phase system repair logic.",
+      tech: ["LangGraph", "FastAPI", "DevOps", "Docker"]
     },
     {
-      title: "Isolated Test Sandbox",
-      desc: "A secure local execution playground containing target application files (main.py, utils.py) and regression testing suites.",
-      tech: ["Docker", "Python", "Pytest", "Subprocess"]
+      title: "Aetheris",
+      desc: "E-Commerce Web Application (Inamigos Foundation) Developed and deployed a robust, sample online e-commerce platform, focusing on seamless user workflows, product catalog rendering, and responsive end-to-end interface logic.",
+      tech: ["React", "Node.js", "Full-Stack", "Web Development"]
     },
     {
-      title: "Monaco Diff Editor Integration",
-      desc: "High-fidelity, interactive code viewer that enables side-by-side git diff comparisons of AI-generated repairs for human verification.",
-      tech: ["React", "Monaco Editor", "Vite", "JavaScript"]
-    },
-    {
-      title: "Live Observability Telemetry",
-      desc: "SVG data visualizations rendering financial gateway workloads, error rate trends, and mean time to repair (MTTR) scoring.",
-      tech: ["React", "TailwindCSS", "SVG", "Framer Motion"]
+      title: "AXON Engine",
+      desc: "Predictive Modeling Analytics Built a high performance data engine executing algorithmic predictions and core operational analytics with specialized performance modeling.",
+      tech: ["Machine Learning", "NumPy", "Python", "Streamlit"]
     }
   ];
 
@@ -406,11 +401,11 @@ export default function App() {
             <div className="lg:col-span-7 space-y-6">
               <h4 className="text-lg font-bold uppercase tracking-wider text-gray-500 flex items-center gap-2">
                 <Layers className="w-4.5 h-4.5 text-cyan-400" />
-                Core Systems &amp; Architecture Modules
+                Featured Systems
               </h4>
               
               <div className="grid gap-4.5">
-                {coreModules.map((proj, idx) => (
+                {featuredSystems.map((proj, idx) => (
                   <div 
                     key={idx}
                     className="p-5.5 rounded-xl border border-white/5 bg-[#050508] hover:border-cyan-500/20 transition-all flex flex-col justify-between"
