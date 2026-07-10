@@ -252,6 +252,10 @@ async def websocket_endpoint(websocket: WebSocket):
 async def sessions():
     return []
 
+@app.get("/")
+def read_root():
+    return {"status": "healthy", "message": "Core SRE Backend is running"}
+
 @app.get("/health")
 def health():
     return {
